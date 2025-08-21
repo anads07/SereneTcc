@@ -303,11 +303,6 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
   },
-
-  // CHAT
-  chatArea: { 
-    flex: 1,
-  },
   chatContent: {
     paddingVertical: 15,
     paddingHorizontal: 15,

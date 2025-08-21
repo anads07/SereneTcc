@@ -40,15 +40,12 @@ const RegisterScreen = ({ navigation }) => {
     if (!validateForm()) return;
     
     setLoading(true);
-    // Simulando chamada à API
     setTimeout(() => {
       setLoading(false);
       Alert.alert(
         'Cadastro realizado!', 
         'Sua conta foi criada com sucesso.',
-        [
-          { text: 'OK', onPress: () => navigation.navigate('Login') }
-        ]
+        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
       );
     }, 1500);
   };
@@ -59,10 +56,8 @@ const RegisterScreen = ({ navigation }) => {
         colors={['#fff', '#a4c4ff']}
         style={styles.background}
       >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContainer}
-          style={styles.scrollView}
-        >
+        {/* ✅ CORREÇÃO: REMOVI style={styles.scrollView} */}
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.container}>
             <View style={styles.content}>
               <Text style={styles.welcomeText}>Seja bem-vindo!</Text>
@@ -83,25 +78,19 @@ const RegisterScreen = ({ navigation }) => {
               </View>
 
               <View style={styles.inputContainer}>
-                <Image source={userIcon} style={styles.inputIcon} 
-                  accessibilityLabel="Ícone de usuário"
-                  accessibilityHint="Campo para inserir nome de usuário"/>
+                <Image source={userIcon} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.inputField, errors.username && styles.errorInput]}
                   placeholder="Nome de usuário"
                   placeholderTextColor="#FFFFFF"
                   value={username}
                   onChangeText={setUsername}
-                  accessibilityLabel="Campo de nome de usuário"
-                  accessibilityHint="Digite seu nome de usuário para cadastro"
                 />
               </View>
               {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
 
               <View style={styles.inputContainer}>
-                <Image source={emailIcon} style={styles.inputIcon}
-                  accessibilityLabel="Ícone de email"
-                  accessibilityHint="Campo para inserir email"/>
+                <Image source={emailIcon} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.inputField, errors.email && styles.errorInput]}
                   placeholder="Email"
@@ -110,16 +99,12 @@ const RegisterScreen = ({ navigation }) => {
                   autoCapitalize="none"
                   value={email}
                   onChangeText={setEmail}
-                  accessibilityLabel="Campo de email"
-                  accessibilityHint="Digite seu email para cadastro"
                 />
               </View>
               {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
               <View style={styles.inputContainer}>
-                <Image source={senhaIcon} style={styles.inputIcon}
-                  accessibilityLabel="Ícone de senha"
-                  accessibilityHint="Campo para inserir senha"/>
+                <Image source={senhaIcon} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.inputField, errors.password && styles.errorInput]}
                   placeholder="Senha"
@@ -127,8 +112,6 @@ const RegisterScreen = ({ navigation }) => {
                   secureTextEntry={true}
                   value={password}
                   onChangeText={setPassword}
-                  accessibilityLabel="Campo de senha"
-                  accessibilityHint="Digite sua senha para cadastro"
                 />
               </View>
               {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
@@ -143,9 +126,6 @@ const RegisterScreen = ({ navigation }) => {
                 <TouchableOpacity
                   style={styles.registerButton}
                   onPress={handleRegister}
-                  accessibilityLabel="Botão de cadastro"
-                  accessibilityHint="Clique para criar sua conta"
-                  accessibilityRole="button"
                 >
                   <Text style={styles.buttonText}>CADASTRAR</Text>
                 </TouchableOpacity>
@@ -163,9 +143,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  scrollView: {
-    flex: 1,
-  },
+  // ✅ REMOVIDO: scrollView: { flex: 1 },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -219,7 +197,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: 10,
-    fontFamily: 'Bree-Serif',
   },
   activeTab: {
     borderBottomWidth: 3,

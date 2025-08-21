@@ -8,7 +8,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
-// Definição das emoções com cores vibrantes
 const moods = [
   { name: 'Feliz', icon: 'happy-outline', color: '#0c4793' },
   { name: 'Triste', icon: 'sad-outline', color: '#a1bce2' },
@@ -97,6 +96,8 @@ const DiarioScreen = ({ navigation }) => {
             <Image source={require('../assets/src/logoimg.png')} style={styles.logoOld} />
           </View>
         </View>
+        
+        {/* ✅ SCROLLVIEW CORRIGIDO - SEM style com flex */}
         <ScrollView contentContainerStyle={styles.formScrollContent}>
           <View style={styles.formContainer}>
             <Text style={styles.formTitle}>O que aconteceu hoje?</Text>
@@ -160,7 +161,9 @@ const DiarioScreen = ({ navigation }) => {
         <View style={styles.mainContent}>
           <View style={styles.cardContainer}>
             <Text style={styles.listTitle}>Minhas Anotações</Text>
-            <ScrollView style={styles.listScrollView}>
+            
+            {/* ✅ SCROLLVIEW CORRIGIDO - SEM style com flex */}
+            <ScrollView contentContainerStyle={styles.listContent}>
               {entries.length > 0 ? (
                 entries.slice().reverse().map((entry) => (
                   <TouchableOpacity
@@ -208,6 +211,19 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
+  
+  // ✅ ESTILOS CORRIGIDOS:
+  listContent: {
+    padding: 10,
+  },
+  
+  formScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 20,
+    paddingTop: 100,
+  },
+
   // Estilos para a lista
   headerList: {
     flexDirection: 'row',
@@ -256,9 +272,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 8,
-  },
-  listScrollView: {
-    flex: 1,
   },
   listTitle: {
     fontSize: 22,
@@ -334,13 +347,8 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  
   // Estilos para o formulário
-  formScrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 20,
-    paddingTop: 100,
-  },
   formContainer: {
     paddingTop: 20,
   },

@@ -35,7 +35,6 @@ const LoginScreen = ({ navigation }) => {
     if (!validateForm()) return;
     
     setLoading(true);
-    // Simulando chamada à API
     setTimeout(() => {
       setLoading(false);
       navigation.navigate('Menu');
@@ -48,10 +47,8 @@ const LoginScreen = ({ navigation }) => {
         colors={['#fff', '#a4c4ff']}
         style={styles.background}
       >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContainer}
-          style={styles.scrollView}
-        >
+        {/* ✅ CORREÇÃO: REMOVI style={styles.scrollView} */}
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.container}>
             <View style={styles.content}>
               <Text style={styles.welcomeText}>Bem-vindo!</Text>
@@ -72,9 +69,7 @@ const LoginScreen = ({ navigation }) => {
               </View>
 
               <View style={styles.inputContainer}>
-                <Image source={userIcon} style={styles.inputIcon} 
-                  accessibilityLabel="Ícone de usuário"
-                  accessibilityHint="Campo para inserir email ou nome de usuário"/>
+                <Image source={userIcon} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.inputField, errors.email && styles.errorInput]}
                   placeholder="Email"
@@ -83,16 +78,12 @@ const LoginScreen = ({ navigation }) => {
                   onChangeText={setEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  accessibilityLabel="Campo de email"
-                  accessibilityHint="Digite seu email para login"
                 />
               </View>
               {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
               <View style={styles.inputContainer}>
-                <Image source={senhaIcon} style={styles.inputIcon} 
-                  accessibilityLabel="Ícone de senha"
-                  accessibilityHint="Campo para inserir senha"/>
+                <Image source={senhaIcon} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.inputField, errors.password && styles.errorInput]}
                   placeholder="Senha"
@@ -100,8 +91,6 @@ const LoginScreen = ({ navigation }) => {
                   secureTextEntry={true}
                   value={password}
                   onChangeText={setPassword}
-                  accessibilityLabel="Campo de senha"
-                  accessibilityHint="Digite sua senha para login"
                 />
               </View>
               {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
@@ -109,8 +98,6 @@ const LoginScreen = ({ navigation }) => {
               <View style={styles.optionsContainer}>
                 <TouchableOpacity 
                   onPress={() => Alert.alert('Recuperar senha', 'Funcionalidade em desenvolvimento')}
-                  accessibilityLabel="Esqueci minha senha"
-                  accessibilityHint="Clique para recuperar sua senha"
                 >
                   <Text style={styles.optionText}>Esqueci minha senha</Text>
                 </TouchableOpacity>
@@ -122,9 +109,6 @@ const LoginScreen = ({ navigation }) => {
                 <TouchableOpacity
                   style={styles.loginButton}
                   onPress={handleLogin}
-                  accessibilityLabel="Botão de login"
-                  accessibilityHint="Clique para fazer login na aplicação"
-                  accessibilityRole="button"
                 >
                   <Text style={styles.buttonText}>LOGIN</Text>
                 </TouchableOpacity>
@@ -142,9 +126,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  scrollView: {
-    flex: 1,
-  },
+  // ✅ REMOVIDO: scrollView: { flex: 1 },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
