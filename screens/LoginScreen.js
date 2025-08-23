@@ -13,15 +13,18 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// ícones utilizados na tela
 const userIcon = require('../assets/src/user.png');
 const senhaIcon = require('../assets/src/senha.png');
 
 const LoginScreen = ({ navigation }) => {
+  // estados do formulário e loading
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // validação simples do formulário
   const validateForm = () => {
     const newErrors = {};
     if (!email) newErrors.email = 'Email é obrigatório';
@@ -31,6 +34,7 @@ const LoginScreen = ({ navigation }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // simula login e navega para menu
   const handleLogin = () => {
     if (!validateForm()) return;
     
@@ -47,15 +51,17 @@ const LoginScreen = ({ navigation }) => {
         colors={['#fff', '#a4c4ff']}
         style={styles.background}
       >
-        {/* ✅ CORREÇÃO: REMOVI style={styles.scrollView} */}
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.container}>
+            {/* mensagem de boas-vindas */}
             <View style={styles.content}>
               <Text style={styles.welcomeText}>Bem-vindo!</Text>
               <Text style={styles.subtitle}>Faça seu login para continuar.</Text>
             </View>
 
+            {/* caixa do formulário */}
             <View style={styles.formBox}>
+              {/* abas de login/cadastro */}
               <View style={styles.tabContainer}>
                 <TouchableOpacity style={[styles.tabButton, styles.activeTab]}>
                   <Text style={styles.tabText}>ENTRAR</Text>
@@ -68,6 +74,7 @@ const LoginScreen = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
 
+              {/* campo email */}
               <View style={styles.inputContainer}>
                 <Image source={userIcon} style={styles.inputIcon} />
                 <TextInput
@@ -82,6 +89,7 @@ const LoginScreen = ({ navigation }) => {
               </View>
               {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
+              {/* campo senha */}
               <View style={styles.inputContainer}>
                 <Image source={senhaIcon} style={styles.inputIcon} />
                 <TextInput
@@ -95,6 +103,7 @@ const LoginScreen = ({ navigation }) => {
               </View>
               {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
+              {/* opção de recuperar senha */}
               <View style={styles.optionsContainer}>
                 <TouchableOpacity 
                   onPress={() => Alert.alert('Recuperar senha', 'Funcionalidade em desenvolvimento')}
@@ -103,6 +112,7 @@ const LoginScreen = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
 
+              {/* botão de login ou indicador de loading */}
               {loading ? (
                 <ActivityIndicator size="large" color="#0c4793" />
               ) : (
@@ -126,7 +136,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  // ✅ REMOVIDO: scrollView: { flex: 1 },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',

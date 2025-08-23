@@ -14,14 +14,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 
+// imagens utilizadas na tela
 const logoImage = require('../assets/src/logo.png');
 const apresentacaoImage = require('../assets/src/apresentacao.png');
 
 const ApresentacaoScreen = ({ navigation }) => {
+  // carregamento de fontes
   const [fontsLoaded] = useFonts({
     'Bree-Serif': require('../assets/fonts/BreeSerif-Regular.ttf'),
   });
 
+  // animação de fade-in
   const [fadeAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
@@ -32,6 +35,7 @@ const ApresentacaoScreen = ({ navigation }) => {
     }).start();
   }, []);
 
+  // mostra loading enquanto a fonte não carregou
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
@@ -46,47 +50,55 @@ const ApresentacaoScreen = ({ navigation }) => {
         colors={['#fff', '#a4c4ff']}
         style={styles.background}
       >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.container}>
-          <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-            <Image
-              source={logoImage}
-              style={styles.logo}
-              accessibilityLabel="Logo do aplicativo Serene"
-              accessibilityHint="Imagem representando a logo do aplicativo de saúde mental"
-            />
-            <Image
-              source={apresentacaoImage}
-              style={styles.illustration}
-              accessibilityLabel="Ilustração de apresentação"
-              accessibilityHint="Imagem representando saúde mental e bem-estar"
-            />
-            <Text style={styles.text}>
-              Transforme sua mente, cuide de sua alma: juntos, podemos construir um caminho para o bem-estar mental.
-            </Text>
-          </Animated.View>
-          <View style={styles.arrowButton}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Login')}
-              accessible={true}
-              accessibilityLabel="Próxima tela"
-              accessibilityHint="Navega para a tela de login"
-              accessibilityRole="button"
-            >
-              <Ionicons name="arrow-forward-circle" size={60} color="#0c4793" style={styles.arrowIcon} />
-            </TouchableOpacity>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.container}>
+            {/* conteúdo com animação */}
+            <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+              <Image
+                source={logoImage}
+                style={styles.logo}
+                accessibilityLabel="Logo do aplicativo Serene"
+                accessibilityHint="Imagem representando a logo do aplicativo de saúde mental"
+              />
+              <Image
+                source={apresentacaoImage}
+                style={styles.illustration}
+                accessibilityLabel="Ilustração de apresentação"
+                accessibilityHint="Imagem representando saúde mental e bem-estar"
+              />
+              <Text style={styles.text}>
+                Transforme sua mente, cuide de sua alma: juntos, podemos construir um caminho para o bem-estar mental.
+              </Text>
+            </Animated.View>
+
+            {/* botão para navegar à próxima tela */}
+            <View style={styles.arrowButton}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Login')}
+                accessible={true}
+                accessibilityLabel="Próxima tela"
+                accessibilityHint="Navega para a tela de login"
+                accessibilityRole="button"
+              >
+                <Ionicons 
+                  name="arrow-forward-circle" 
+                  size={60} 
+                  color="#0c4793" 
+                  style={styles.arrowIcon} 
+                />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </LinearGradient>
-  </SafeAreaView>
+        </ScrollView>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff', // Cor de fallback
+    backgroundColor: '#fff', 
   },
   container: {
     flex: 1,
@@ -94,10 +106,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
   },
   scrollContainer: {
-  flexGrow: 1, // Isso permite que o ScrollView cresça e ocupe o espaço disponível
-  justifyContent: 'space-around',
-
-},
+    flexGrow: 1,
+    justifyContent: 'space-around',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -105,7 +116,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   background: {
-    flex: 1, // MUDEI de position: absolute para flex: 1
+    flex: 1, 
   },
   content: {
     flex: 1,
@@ -125,10 +136,10 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     resizeMode: 'contain',
-    marginTop: -120
+    marginTop: -120,
   },
   text: {
-    fontFamily: 'BreeSerif-Regular',
+    fontFamily: 'Bree-Serif',
     fontSize: 22,
     color: '#0c4793',
     marginHorizontal: 40,

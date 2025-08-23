@@ -1,3 +1,4 @@
+// Importações principais
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -15,10 +16,12 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// Obter largura da tela
 const { width } = Dimensions.get('window');
 
+// ====== DADOS ======
 
-
+// Lista completa de recomendações
 const todasRecomendacoes = [
   {
     title: 'Respiração Profunda',
@@ -258,11 +261,12 @@ const todasRecomendacoes = [
   },
 ];
 
-// Lista de frases para os balões de conversa
+
+// Frases aleatórias para os balões de conversa
 const frasesBalao1 = [
   'Hora de dar uma pausa e respirar fundo 🌿',
   'Um momento só para você! Que tal relaxar?',
-  'Respire… vamos desacelerar juntos �',
+  'Respire… vamos desacelerar juntos 🧘',
   'É hora de cuidar de você ✨',
   'Tire um tempinho para respirar e recarregar 💖',
   'Vamos tirar alguns minutos só para o seu bem-estar?',
@@ -285,73 +289,51 @@ const frasesBalao2 = [
   'Dedique alguns minutos para se sentir melhor 💖',
 ];
 
+// ====== COMPONENTE PRINCIPAL ======
 const RecomendacoesScreen = () => {
   const navigation = useNavigation();
+
+  // Estados principais
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [displayedRecommendations, setDisplayedRecommendations] = useState([]);
   const [balao1Phrase, setBalao1Phrase] = useState('');
   const [balao2Phrase, setBalao2Phrase] = useState('');
   const [selectedRecommendation, setSelectedRecommendation] = useState(null);
 
-  // Valores de animação para os balões e o botão OK
+  // Valores de animação
   const balao1Anim = useRef(new Animated.Value(0)).current;
   const balao2Anim = useRef(new Animated.Value(0)).current;
   const okButtonAnim = useRef(new Animated.Value(0)).current;
-
-  // Animação para as recomendações
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
+  // ====== useEffect para inicialização ======
   useEffect(() => {
-    // Seleciona frases aleatórias para os balões
+    // Seleciona frases aleatórias para balões
     const randomPhrase1 = frasesBalao1[Math.floor(Math.random() * frasesBalao1.length)];
     const randomPhrase2 = frasesBalao2[Math.floor(Math.random() * frasesBalao2.length)];
     setBalao1Phrase(randomPhrase1);
     setBalao2Phrase(randomPhrase2);
 
-    // Seleciona um grupo aleatório de 4 recomendações
+    // Seleciona 4 recomendações aleatórias
     const startIdx = Math.floor(Math.random() * 5) * 4;
     const selectedGroup = todasRecomendacoes.slice(startIdx, startIdx + 4);
     setDisplayedRecommendations(selectedGroup);
 
-    // Sequência de animação para os balões e o botão
+    // Sequência de animação dos balões e botão OK
     Animated.sequence([
-      Animated.timing(balao1Anim, {
-        toValue: 1,
-        duration: 800,
-        easing: Easing.ease,
-        useNativeDriver: true,
-      }),
-      Animated.timing(balao2Anim, {
-        toValue: 1,
-        duration: 800,
-        easing: Easing.ease,
-        delay: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(okButtonAnim, {
-        toValue: 1,
-        duration: 500,
-        easing: Easing.ease,
-        delay: 500,
-        useNativeDriver: true,
-      }),
+      Animated.timing(balao1Anim, { toValue: 1, duration: 800, easing: Easing.ease, useNativeDriver: true }),
+      Animated.timing(balao2Anim, { toValue: 1, duration: 800, easing: Easing.ease, delay: 500, useNativeDriver: true }),
+      Animated.timing(okButtonAnim, { toValue: 1, duration: 500, easing: Easing.ease, delay: 500, useNativeDriver: true }),
     ]).start();
   }, []);
 
+  // ====== FUNÇÕES ======
   const handleOkPress = () => {
     setShowRecommendations(true);
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 4,
-        useNativeDriver: true,
-      }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 1, friction: 4, useNativeDriver: true }),
     ]).start();
   };
 
@@ -359,6 +341,7 @@ const RecomendacoesScreen = () => {
     setSelectedRecommendation(item);
   };
 
+  // Item de recomendação
   const RecommendationItem = ({ item }) => (
     <TouchableOpacity style={styles.activityCard} onPress={() => handleRecommendationPress(item)}>
       <Text style={styles.activityTitle}>{item.title}</Text>
@@ -367,13 +350,11 @@ const RecomendacoesScreen = () => {
     </TouchableOpacity>
   );
 
+  // ====== RENDER ======
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
-        colors={['#e0f7fa', '#a2caff']}
-        style={styles.background}
-      >
-        {/* Header fixo no topo, com a imagem da seta */}
+      <LinearGradient colors={['#e0f7fa', '#a2caff']} style={styles.background}>
+        {/* Header fixo */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Image source={require('../assets/src/seta.png')} style={styles.backArrow} />
@@ -382,17 +363,18 @@ const RecomendacoesScreen = () => {
           <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          style={styles.scrollView}
-        >
+        <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
           {/* Balões de conversa */}
           <View style={styles.baloesContainerColumn}>
-            <Animated.View style={[styles.balaoContainer, { opacity: balao1Anim, transform: [{ rotate: '1deg' }] }]}>
+            <Animated.View
+              style={[styles.balaoContainer, { opacity: balao1Anim, transform: [{ rotate: '1deg' }] }]}
+            >
               <Image source={require('../assets/src/baloes.png')} style={styles.balaoImage} />
               <Text style={styles.balaoText}>{balao1Phrase}</Text>
             </Animated.View>
-            <Animated.View style={[styles.balaoContainer, { opacity: balao2Anim, transform: [{ rotate: '-1deg' }, { scaleX: -1 }] }]}>
+            <Animated.View
+              style={[styles.balaoContainer, { opacity: balao2Anim, transform: [{ rotate: '-1deg' }, { scaleX: -1 }] }]}
+            >
               <Image source={require('../assets/src/baloes.png')} style={styles.balaoImage} />
               <Text style={[styles.balaoText, { transform: [{ scaleX: -1 }] }]}>{balao2Phrase}</Text>
             </Animated.View>
@@ -409,15 +391,7 @@ const RecomendacoesScreen = () => {
 
           {/* Lista de recomendações */}
           {showRecommendations && (
-            <Animated.View
-              style={[
-                styles.recommendationsContainer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ scale: scaleAnim }],
-                },
-              ]}
-            >
+            <Animated.View style={[styles.recommendationsContainer, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
               <View style={styles.gridContainer}>
                 {displayedRecommendations.map((item, index) => (
                   <RecommendationItem key={index} item={item} />
@@ -427,7 +401,7 @@ const RecomendacoesScreen = () => {
           )}
         </ScrollView>
 
-        {/* Modal para exibir a descrição da recomendação */}
+        {/* Modal da recomendação */}
         <Modal
           visible={!!selectedRecommendation}
           animationType="slide"
@@ -439,10 +413,7 @@ const RecomendacoesScreen = () => {
               <Image source={selectedRecommendation?.image} style={styles.modalImage} />
               <Text style={styles.modalTitle}>{selectedRecommendation?.title}</Text>
               <Text style={styles.modalDescription}>{selectedRecommendation?.descricao}</Text>
-              <TouchableOpacity
-                onPress={() => setSelectedRecommendation(null)}
-                style={styles.closeModalButton}
-              >
+              <TouchableOpacity onPress={() => setSelectedRecommendation(null)} style={styles.closeModalButton}>
                 <Text style={styles.closeModalText}>Fechar</Text>
               </TouchableOpacity>
             </View>
@@ -453,6 +424,7 @@ const RecomendacoesScreen = () => {
   );
 };
 
+// ====== ESTILOS ======
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

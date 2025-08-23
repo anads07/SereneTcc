@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Definição do fluxo de conversa
+// fluxo de conversa do chatbot
 const chatFlow = {
   initial: {
     botMessage: 'Olá! Do que você precisa?',
@@ -132,25 +132,34 @@ const chatFlow = {
     suggestions: ['Sim, por favor.', 'Não, obrigado(a).', 'Ligar agora para o CVV (188)'],
     nextSteps: { 1: 'finalizado', 2: 'finalizado', 3: 'ligarCVV' }
   },
-  ligarCVV: { botMessage: 'Ok! Redirecionando para a chamada...', suggestions: [], action: 'dial' },
-  finalizado: { botMessage: 'Fim da conversa. Estou aqui se precisar novamente.', suggestions: [] }
+  ligarCVV: {
+    botMessage: 'Ok! Redirecionando para a chamada...',
+    suggestions: [],
+    action: 'dial'
+  },
+  finalizado: {
+    botMessage: 'Fim da conversa. Estou aqui se precisar novamente.',
+    suggestions: []
+  }
 };
 
-// HEADER COMPONENT
+// componente header do chatbot
 const Header = ({ navigation }) => (
   <View style={styles.header}>
     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
       <Image source={require('../assets/src/seta.png')} style={styles.backArrow} />
     </TouchableOpacity>
+
     <View style={styles.headerTitleContainer}>
       <Image source={require('../assets/src/robo.png')} style={styles.robotIcon} />
       <Text style={styles.headerText}>CHATBOT</Text>
     </View>
+
     <View style={{ width: 40 }} />
   </View>
 );
 
-// COMPONENTE DE MENSAGEM
+// componente de mensagem
 const ChatMessage = ({ text, isUser }) => (
   <View
     style={[
@@ -158,13 +167,18 @@ const ChatMessage = ({ text, isUser }) => (
       isUser ? styles.userMessageContainer : styles.botMessageContainer
     ]}
   >
-    <Text style={[styles.messageText, isUser ? styles.userMessageText : styles.botMessageText]}>
+    <Text
+      style={[
+        styles.messageText,
+        isUser ? styles.userMessageText : styles.botMessageText
+      ]}
+    >
       {text}
     </Text>
   </View>
 );
 
-// COMPONENTE DE SUGESTÕES
+// componente de sugestões
 const SuggestionMessage = ({ suggestions, onSelect }) => (
   <View style={styles.suggestionsContainer}>
     {suggestions.map((suggestion, index) => (
@@ -179,7 +193,7 @@ const SuggestionMessage = ({ suggestions, onSelect }) => (
   </View>
 );
 
-// TELA PRINCIPAL DO CHATBOT
+// tela principal do chatbot
 const ChatBotScreen = ({ navigation }) => {
   const [messages, setMessages] = useState([]);
   const [currentStep, setCurrentStep] = useState('initial');
@@ -193,7 +207,9 @@ const ChatBotScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    if (scrollViewRef.current) scrollViewRef.current.scrollToEnd({ animated: true });
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
   }, [messages]);
 
   const handleSuggestionSelect = (choice, suggestionText) => {
@@ -215,9 +231,15 @@ const ChatBotScreen = ({ navigation }) => {
       setMessages(newMessages);
       setCurrentStep(nextStepKey);
 
-      if (nextStep.action === 'dial') Linking.openURL('tel:188');
+      if (nextStep.action === 'dial') {
+        Linking.openURL('tel:188');
+      }
     } else {
-      setMessages([...messages, userChoiceMessage, { type: 'bot', text: 'Fim da conversa.' }]);
+      setMessages([
+        ...messages,
+        userChoiceMessage,
+        { type: 'bot', text: 'Fim da conversa.' }
+      ]);
       setCurrentStep('finalizado');
     }
   };
@@ -229,6 +251,7 @@ const ChatBotScreen = ({ navigation }) => {
         style={styles.background}
       >
         <Header navigation={navigation} />
+
         <KeyboardAvoidingView
           style={styles.keyboardAvoidingView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -241,8 +264,13 @@ const ChatBotScreen = ({ navigation }) => {
             {messages.map((msg, index) => {
               if (msg.type === 'bot') return <ChatMessage key={index} text={msg.text} isUser={false} />;
               if (msg.type === 'userChoice') return <ChatMessage key={index} text={msg.text} isUser={true} />;
-              if (msg.type === 'suggestions')
-                return <SuggestionMessage key={index} suggestions={msg.suggestions} onSelect={handleSuggestionSelect} />;
+              if (msg.type === 'suggestions') return (
+                <SuggestionMessage
+                  key={index}
+                  suggestions={msg.suggestions}
+                  onSelect={handleSuggestionSelect}
+                />
+              );
               return null;
             })}
           </ScrollView>
@@ -252,19 +280,18 @@ const ChatBotScreen = ({ navigation }) => {
   );
 };
 
-// ESTILOS ORGANIZADOS
+// estilos organizados linha por linha
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fff'
   },
   background: {
-    flex: 1,
+    flex: 1
   },
   keyboardAvoidingView: {
-    flex: 1,
+    flex: 1
   },
-  // HEADER
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -277,38 +304,36 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 15
   },
   backButton: {
-    padding: 10,
+    padding: 10
   },
   backArrow: {
     width: 40,
     height: 40,
     resizeMode: 'contain',
+    tintColor: 'white'
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  robotIcon: {
+    width: 40,
+    height: 40,
+    marginRight: 8,
     tintColor: 'white',
-  },
-  headerTitleContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center' 
-  },
-  robotIcon: { 
-    width: 40, 
-    height: 40, 
-    marginRight: 8, 
-    tintColor: 'white', 
-    resizeMode: 'contain' 
+    resizeMode: 'contain'
   },
   headerText: {
     fontSize: 28,
     fontFamily: 'Bree-Serif',
     fontWeight: 'bold',
     color: 'white',
-    textAlign: 'center',
+    textAlign: 'center'
   },
   chatContent: {
     paddingVertical: 15,
-    paddingHorizontal: 15,
+    paddingHorizontal: 15
   },
-
-  // MENSAGENS
   messageContainer: {
     maxWidth: '80%',
     padding: 12,
@@ -320,25 +345,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3.84
   },
-  botMessageContainer: { 
-    backgroundColor: '#fff', 
-    alignSelf: 'flex-start' 
+  botMessageContainer: {
+    backgroundColor: '#fff',
+    alignSelf: 'flex-start'
   },
-  userMessageContainer: { 
-    backgroundColor: '#b0e0e6', 
-    alignSelf: 'flex-end' 
+  userMessageContainer: {
+    backgroundColor: '#b0e0e6',
+    alignSelf: 'flex-end'
   },
-  messageText: { 
-    fontSize: 16 
+  messageText: {
+    fontSize: 16
   },
-  botMessageText: { 
-    color: '#333' 
+  botMessageText: {
+    color: '#333'
   },
-  userMessageText: { 
-    color: '#000' 
+  userMessageText: {
+    color: '#000'
   },
-
-  // SUGESTÕES
   suggestionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -358,10 +381,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 2.84
   },
-  suggestionText: { 
-    fontSize: 16, 
-    color: 'white', 
-    textAlign: 'center' 
+  suggestionText: {
+    fontSize: 16,
+    color: 'white',
+    textAlign: 'center'
   }
 });
 

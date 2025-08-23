@@ -1,23 +1,40 @@
+// Importações principais
 import React, { useState } from 'react';
 import {
-  StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Alert,
-  SafeAreaView, ScrollView
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  Alert,
+  SafeAreaView,
+  ScrollView,
 } from 'react-native';
+
+// Ícones da biblioteca Expo
 import { Ionicons } from '@expo/vector-icons';
+
+// Biblioteca para selecionar imagens da galeria
 import * as ImagePicker from 'expo-image-picker';
+
+// Gradiente de fundo
 import { LinearGradient } from 'expo-linear-gradient';
 
 const ProfileScreen = ({ navigation }) => {
+  // Estados do usuário
   const [userName, setUserName] = useState('NOME');
   const [userEmail, setUserEmail] = useState('EMAIL@SWXIND.COM');
   const [userPassword, setUserPassword] = useState('SWXIND');
   const [userPhone, setUserPhone] = useState('(DD) 1111111-1111');
   const [profilePicture, setProfilePicture] = useState(require('../assets/src/user.png'));
 
+  // Função para salvar alterações do perfil
   const handleEditProfile = () => {
     Alert.alert('Sucesso!', 'Perfil editado com sucesso!');
   };
 
+  // Função para editar a foto do perfil
   const handleEditPhoto = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -39,7 +56,7 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Fundo decorativo */}
+      {/* Fundo com gradiente */}
       <View style={styles.gradientBackground}>
         <LinearGradient
           colors={['#8ca9d2', '#e0f7fa']}
@@ -51,6 +68,7 @@ const ProfileScreen = ({ navigation }) => {
 
       {/* Conteúdo scrollável */}
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Cabeçalho com botão de voltar e logo */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Image source={require('../assets/src/seta.png')} style={styles.backArrow} />
@@ -63,7 +81,9 @@ const ProfileScreen = ({ navigation }) => {
           </View>
         </View>
 
+        {/* Conteúdo do perfil */}
         <View style={styles.profileContent}>
+          {/* Foto do perfil com botão de editar */}
           <View style={styles.profilePictureContainer}>
             <Image source={profilePicture} style={styles.profilePicture} />
             <TouchableOpacity style={styles.editIcon} onPress={handleEditPhoto}>
@@ -71,8 +91,10 @@ const ProfileScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
+          {/* Nome do usuário */}
           <Text style={styles.userName}>{userName}</Text>
 
+          {/* Campo para editar email */}
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>ALTERAR EMAIL:</Text>
             <TextInput
@@ -84,6 +106,7 @@ const ProfileScreen = ({ navigation }) => {
             />
           </View>
 
+          {/* Campo para editar senha */}
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>ALTERAR SENHA:</Text>
             <TextInput
@@ -96,6 +119,7 @@ const ProfileScreen = ({ navigation }) => {
             />
           </View>
 
+          {/* Campo para telefone de emergência */}
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>TELEFONE DE EMERGÊNCIA:</Text>
             <TextInput
@@ -108,6 +132,7 @@ const ProfileScreen = ({ navigation }) => {
             />
           </View>
 
+          {/* Botão para salvar alterações */}
           <TouchableOpacity style={styles.saveButton} onPress={handleEditProfile}>
             <Text style={styles.saveButtonText}>Salvar Alterações</Text>
           </TouchableOpacity>
@@ -117,20 +142,27 @@ const ProfileScreen = ({ navigation }) => {
   );
 };
 
+// Estilos organizados e comentados
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
   },
+
+  // Gradiente de fundo
   gradientBackground: {
     ...StyleSheet.absoluteFillObject,
     zIndex: -1,
   },
+
+  // Conteúdo scrollável
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 50,
     alignItems: 'center',
   },
+
+  // Cabeçalho
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -169,6 +201,8 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'contain',
   },
+
+  // Conteúdo do perfil
   profileContent: {
     width: '100%',
     backgroundColor: 'rgba(255,255,255,0.6)',
@@ -176,6 +210,8 @@ const styles = StyleSheet.create({
     padding: 25,
     alignItems: 'center',
   },
+
+  // Foto do perfil
   profilePictureContainer: {
     position: 'relative',
     marginBottom: 20,
@@ -197,6 +233,8 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 5,
   },
+
+  // Nome do usuário
   userName: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -204,6 +242,8 @@ const styles = StyleSheet.create({
     color: '#000',
     fontFamily: 'Bree-Serif',
   },
+
+  // Campos de input
   inputContainer: {
     width: '100%',
     marginBottom: 10,
@@ -224,6 +264,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Bree-Serif',
   },
+
+  // Botão de salvar
   saveButton: {
     backgroundColor: '#8ca9d2',
     padding: 15,

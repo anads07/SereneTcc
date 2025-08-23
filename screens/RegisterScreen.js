@@ -13,17 +13,20 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// ícones utilizados na tela
 const userIcon = require('../assets/src/user.png');
 const emailIcon = require('../assets/src/email.png');
 const senhaIcon = require('../assets/src/senha.png');
 
 const RegisterScreen = ({ navigation }) => {
+  // estados do formulário e loading
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // validação simples do formulário
   const validateForm = () => {
     const newErrors = {};
     if (!username) newErrors.username = 'Nome de usuário é obrigatório';
@@ -36,6 +39,7 @@ const RegisterScreen = ({ navigation }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // simula registro e exibe alerta
   const handleRegister = () => {
     if (!validateForm()) return;
     
@@ -56,15 +60,17 @@ const RegisterScreen = ({ navigation }) => {
         colors={['#fff', '#a4c4ff']}
         style={styles.background}
       >
-        {/* ✅ CORREÇÃO: REMOVI style={styles.scrollView} */}
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.container}>
+            {/* mensagem de boas-vindas */}
             <View style={styles.content}>
               <Text style={styles.welcomeText}>Seja bem-vindo!</Text>
               <Text style={styles.subtitle}>Crie sua conta para começar.</Text>
             </View>
 
+            {/* caixa do formulário */}
             <View style={styles.formBox}>
+              {/* abas de login/cadastro */}
               <View style={styles.tabContainer}>
                 <TouchableOpacity
                   style={[styles.tabButton, styles.inactiveTab]}
@@ -77,6 +83,7 @@ const RegisterScreen = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
 
+              {/* campo nome de usuário */}
               <View style={styles.inputContainer}>
                 <Image source={userIcon} style={styles.inputIcon} />
                 <TextInput
@@ -89,6 +96,7 @@ const RegisterScreen = ({ navigation }) => {
               </View>
               {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
 
+              {/* campo email */}
               <View style={styles.inputContainer}>
                 <Image source={emailIcon} style={styles.inputIcon} />
                 <TextInput
@@ -103,6 +111,7 @@ const RegisterScreen = ({ navigation }) => {
               </View>
               {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
+              {/* campo senha */}
               <View style={styles.inputContainer}>
                 <Image source={senhaIcon} style={styles.inputIcon} />
                 <TextInput
@@ -116,10 +125,12 @@ const RegisterScreen = ({ navigation }) => {
               </View>
               {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
+              {/* aviso de privacidade */}
               <Text style={styles.privacyText}>
                 Ao cadastrar, você concorda com nossos Termos de Serviço e Política de Privacidade.
               </Text>
 
+              {/* botão de cadastro ou indicador de loading */}
               {loading ? (
                 <ActivityIndicator size="large" color="#0c4793" />
               ) : (
@@ -143,7 +154,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  // ✅ REMOVIDO: scrollView: { flex: 1 },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
