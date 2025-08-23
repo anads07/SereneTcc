@@ -103,7 +103,7 @@ const RelatorioScreen = ({ navigation }) => {
             </TouchableOpacity>
 
             <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerText}>COMO ESTÁ SE SENTINDO HOJE?</Text>
+              <Text style={styles.headerText}>COMO VOCÊ ESTÁ SE SENTINDO?</Text>
             </View>
           </View>
 
@@ -199,11 +199,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 20,
-    paddingBottom: 10,
+    paddingBottom: 5,
   },
   backButton: {
     position: 'absolute',
-    left: 20,
+    left: 5,
     padding: 10,
     zIndex: 100,
   },
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 20,
-    marginBottom: 10,
+    marginBottom: -5,
   },
   emojiButton: {
     padding: 10,
@@ -245,6 +245,7 @@ const styles = StyleSheet.create({
     height: 20,
     alignSelf: 'center',
     marginVertical: 10,
+    marginBottom: -10
   },
   postitContainer: {
     alignSelf: 'center',
@@ -252,6 +253,7 @@ const styles = StyleSheet.create({
     height: screenWidth * 0.8 * (230 / 320),
     marginVertical: 10,
     transform: [{ rotate: '-3deg' }],
+    marginBottom: 20
   },
   postitImage: {
     width: '100%',
@@ -290,6 +292,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 5,
+    marginTop: -20
   },
   resumoText: {
     fontSize: 22,

@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { width } = Dimensions.get('window');
 
 const moods = [
-  { name: 'Feliz', icon: 'happy-outline', color: '#0c4793' },
+  { name: 'Feliz', icon: 'happy-outline', color: '#a1bce2' },
   { name: 'Triste', icon: 'sad-outline', color: '#a1bce2' },
   { name: 'Raiva', icon: 'md-flame-outline', color: '#84a9da' },
   { name: 'Estressado', icon: 'flash-outline', color: '#a4c4ff' },
@@ -83,10 +83,7 @@ const DiarioScreen = ({ navigation }) => {
 
   const renderDiaryForm = () => (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
-        colors={['#d1e4ff', '#c4d8f2']}
-        style={styles.background}
-      >
+      <LinearGradient colors={['#d1e4ff', '#c4d8f2']} style={styles.background}>
         <View style={styles.headerOld}>
           <TouchableOpacity onPress={handleBackPress} style={styles.backButtonOld}>
             <Image source={require('../assets/src/seta.png')} style={styles.backArrowOld} />
@@ -96,8 +93,7 @@ const DiarioScreen = ({ navigation }) => {
             <Image source={require('../assets/src/logoimg.png')} style={styles.logoOld} />
           </View>
         </View>
-        
-        {/* ✅ SCROLLVIEW CORRIGIDO - SEM style com flex */}
+
         <ScrollView contentContainerStyle={styles.formScrollContent}>
           <View style={styles.formContainer}>
             <Text style={styles.formTitle}>O que aconteceu hoje?</Text>
@@ -146,10 +142,7 @@ const DiarioScreen = ({ navigation }) => {
 
   const renderDiaryList = () => (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
-        colors={['#d1e4ff', '#c4d8f2']}
-        style={styles.background}
-      >
+      <LinearGradient colors={['#d1e4ff', '#c4d8f2']} style={styles.background}>
         <View style={styles.headerList}>
           <TouchableOpacity onPress={handleBackPress} style={styles.backButtonList}>
             <Image source={require('../assets/src/seta.png')} style={styles.backArrowList} />
@@ -157,13 +150,12 @@ const DiarioScreen = ({ navigation }) => {
           <Text style={styles.headerTextList}>DIÁRIO</Text>
           <View style={{ width: 40 }} />
         </View>
-        
+
         <View style={styles.mainContent}>
           <View style={styles.cardContainer}>
             <Text style={styles.listTitle}>Minhas Anotações</Text>
-            
-            {/* ✅ SCROLLVIEW CORRIGIDO - SEM style com flex */}
-            <ScrollView contentContainerStyle={styles.listContent}>
+
+            <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={true}>
               {entries.length > 0 ? (
                 entries.slice().reverse().map((entry) => (
                   <TouchableOpacity
@@ -188,7 +180,9 @@ const DiarioScreen = ({ navigation }) => {
                   </TouchableOpacity>
                 ))
               ) : (
-                <Text style={styles.noEntriesText}>Nenhuma anotação salva. {"\n"} Clique no botão abaixo para adicionar!</Text>
+                <Text style={styles.noEntriesText}>
+                  Nenhuma anotação salva. {"\n"} Clique no botão abaixo para adicionar!
+                </Text>
               )}
             </ScrollView>
           </View>
@@ -211,20 +205,25 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
-  
-  // ✅ ESTILOS CORRIGIDOS:
-  listContent: {
-    padding: 10,
-  },
-  
-  formScrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 20,
-    paddingTop: 100,
-  },
 
-  // Estilos para a lista
+  // Lista
+  cardContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: 20,
+    marginHorizontal: 20,
+    width: width - 40,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 8,
+    maxHeight: '90%',
+  },
+  listContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   headerList: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -232,8 +231,9 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
-    paddingVertical: 10,
-    paddingTop: 50,
+    paddingVertical: -10,
+    paddingTop: 10,
+    paddingbottom: 10,
     borderBottomLeftRadius: 15,
     borderBottomRightRadius: 15,
   },
@@ -259,19 +259,6 @@ const styles = StyleSheet.create({
     paddingBottom: 80,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  cardContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    borderRadius: 20,
-    marginHorizontal: 20,
-    flex: 1,
-    width: width - 40,
-    padding: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 8,
   },
   listTitle: {
     fontSize: 22,
@@ -347,8 +334,14 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  
-  // Estilos para o formulário
+
+  // Formulário
+  formScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 20,
+    paddingTop: 100,
+  },
   formContainer: {
     paddingTop: 20,
   },
@@ -365,14 +358,14 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   backButtonOld: {
-    width: 35,
-    height: 35,
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
   backArrowOld: {
-    width: 24,
-    height: 24,
+    width: 40,
+    height: 40,
     resizeMode: 'contain',
     tintColor: '#0c4793',
   },
@@ -385,13 +378,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Bree-Serif',
   },
   logoContainerOld: {
-    width: 35,
-    height: 35,
+    width: 40,
+    height: 40,
   },
   logoOld: {
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
+    tintColor: '#fff'
   },
   formTitle: {
     fontSize: 28,
@@ -486,3 +480,4 @@ const styles = StyleSheet.create({
 });
 
 export default DiarioScreen;
+

@@ -7,7 +7,8 @@ import {
   TouchableOpacity, 
   ActivityIndicator, 
   Animated,
-  SafeAreaView 
+  SafeAreaView,
+  ScrollView 
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
@@ -45,6 +46,7 @@ const ApresentacaoScreen = ({ navigation }) => {
         colors={['#fff', '#a4c4ff']}
         style={styles.background}
       >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
           <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
             <Image
@@ -53,19 +55,16 @@ const ApresentacaoScreen = ({ navigation }) => {
               accessibilityLabel="Logo do aplicativo Serene"
               accessibilityHint="Imagem representando a logo do aplicativo de saúde mental"
             />
-
             <Image
               source={apresentacaoImage}
               style={styles.illustration}
               accessibilityLabel="Ilustração de apresentação"
               accessibilityHint="Imagem representando saúde mental e bem-estar"
             />
-
             <Text style={styles.text}>
               Transforme sua mente, cuide de sua alma: juntos, podemos construir um caminho para o bem-estar mental.
             </Text>
           </Animated.View>
-
           <View style={styles.arrowButton}>
             <TouchableOpacity
               onPress={() => navigation.navigate('Login')}
@@ -78,8 +77,9 @@ const ApresentacaoScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         </View>
-      </LinearGradient>
-    </SafeAreaView>
+      </ScrollView>
+    </LinearGradient>
+  </SafeAreaView>
   );
 };
 
@@ -93,6 +93,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
   },
+  scrollContainer: {
+  flexGrow: 1, // Isso permite que o ScrollView cresça e ocupe o espaço disponível
+  justifyContent: 'space-around',
+
+},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

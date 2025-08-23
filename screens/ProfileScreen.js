@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { 
-  StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Alert, SafeAreaView, ScrollView 
+import {
+  StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Alert,
+  SafeAreaView, ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -38,12 +39,18 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
-        colors={['#8ca9d2', '#e0f7fa']}
-        style={styles.background}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-      >
+      {/* Fundo decorativo */}
+      <View style={styles.gradientBackground}>
+        <LinearGradient
+          colors={['#8ca9d2', '#e0f7fa']}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+        />
+      </View>
+
+      {/* Conteúdo scrollável */}
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Image source={require('../assets/src/seta.png')} style={styles.backArrow} />
@@ -56,62 +63,56 @@ const ProfileScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.profileContent}>
-            <View style={styles.profilePictureContainer}>
-              <Image source={profilePicture} style={styles.profilePicture} />
-              <TouchableOpacity style={styles.editIcon} onPress={handleEditPhoto}>
-                <Ionicons name="create-outline" size={24} color="#fff" />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.userName}>{userName}</Text>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>ALTERAR EMAIL:</Text>
-              <TextInput
-                style={styles.input}
-                value={userEmail}
-                onChangeText={setUserEmail}
-                placeholder="E-mail"
-                placeholderTextColor="#888"
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>ALTERAR SENHA:</Text>
-              <TextInput
-                style={styles.input}
-                value={userPassword}
-                onChangeText={setUserPassword}
-                placeholder="Senha"
-                placeholderTextColor="#888"
-                secureTextEntry
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>TELEFONE DE EMERGÊNCIA:</Text>
-              <TextInput
-                style={styles.input}
-                value={userPhone}
-                onChangeText={setUserPhone}
-                placeholder="Telefone de Emergência"
-                placeholderTextColor="#888"
-                keyboardType="phone-pad"
-              />
-            </View>
-
-            <TouchableOpacity style={styles.saveButton} onPress={handleEditProfile}>
-              <Text style={styles.saveButtonText}>Salvar Alterações</Text>
+        <View style={styles.profileContent}>
+          <View style={styles.profilePictureContainer}>
+            <Image source={profilePicture} style={styles.profilePicture} />
+            <TouchableOpacity style={styles.editIcon} onPress={handleEditPhoto}>
+              <Ionicons name="create-outline" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </LinearGradient>
+
+          <Text style={styles.userName}>{userName}</Text>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>ALTERAR EMAIL:</Text>
+            <TextInput
+              style={styles.input}
+              value={userEmail}
+              onChangeText={setUserEmail}
+              placeholder="E-mail"
+              placeholderTextColor="#888"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>ALTERAR SENHA:</Text>
+            <TextInput
+              style={styles.input}
+              value={userPassword}
+              onChangeText={setUserPassword}
+              placeholder="Senha"
+              placeholderTextColor="#888"
+              secureTextEntry
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>TELEFONE DE EMERGÊNCIA:</Text>
+            <TextInput
+              style={styles.input}
+              value={userPhone}
+              onChangeText={setUserPhone}
+              placeholder="Telefone de Emergência"
+              placeholderTextColor="#888"
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          <TouchableOpacity style={styles.saveButton} onPress={handleEditProfile}>
+            <Text style={styles.saveButtonText}>Salvar Alterações</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -121,11 +122,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  background: { 
-    flex: 1 
+  gradientBackground: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: -1,
   },
-  scrollView: {
-    flex: 1,
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 50,
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -136,17 +140,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     paddingBottom: 20,
   },
-  backButton: { 
-    width: 40, 
-    height: 40, 
+  backButton: {
+    width: 40,
+    height: 40,
     justifyContent: 'center',
-    alignItems: 'center' 
+    alignItems: 'center',
   },
-  backArrow: { 
-    width: 50, 
-    height: 50, 
+  backArrow: {
+    width: 50,
+    height: 50,
     resizeMode: 'contain',
-    tintColor: '#fff'
+    tintColor: '#fff',
   },
   headerTitle: {
     fontSize: 30,
@@ -156,20 +160,14 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: 'Bree-Serif',
   },
-  logoContainer: { 
-    width: 50, 
+  logoContainer: {
+    width: 50,
     height: 50,
   },
-  logo: { 
-    width: '100%', 
-    height: '100%', 
-    resizeMode: 'contain' 
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    paddingBottom: 50,
+  logo: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
   },
   profileContent: {
     width: '100%',
@@ -178,9 +176,9 @@ const styles = StyleSheet.create({
     padding: 25,
     alignItems: 'center',
   },
-  profilePictureContainer: { 
-    position: 'relative', 
-    marginBottom: 20 
+  profilePictureContainer: {
+    position: 'relative',
+    marginBottom: 20,
   },
   profilePicture: {
     width: 100,
@@ -189,7 +187,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#226dce',
     backgroundColor: '#226dce',
-    marginBottom: 5
+    marginBottom: 5,
   },
   editIcon: {
     position: 'absolute',
@@ -199,23 +197,22 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 5,
   },
-  userName: { 
-    fontSize: 28, 
-    fontWeight: 'bold', 
-    marginBottom: 30, 
-    color: '#000', 
+  userName: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    color: '#000',
     fontFamily: 'Bree-Serif',
-    marginBottom: 5
   },
-  inputContainer: { 
-    width: '100%', 
-    marginBottom: 10 
+  inputContainer: {
+    width: '100%',
+    marginBottom: 10,
   },
-  inputLabel: { 
-    fontSize: 12, 
-    color: '#4c5e87', 
-    marginBottom: 5, 
-    fontFamily: 'Bree-Serif', 
+  inputLabel: {
+    fontSize: 12,
+    color: '#4c5e87',
+    marginBottom: 5,
+    fontFamily: 'Bree-Serif',
     fontWeight: 'bold',
   },
   input: {
@@ -235,11 +232,11 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  saveButtonText: { 
-    color: '#fff', 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    fontFamily: 'Bree-Serif' 
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    fontFamily: 'Bree-Serif',
   },
 });
 
