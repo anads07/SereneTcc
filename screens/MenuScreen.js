@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const menuImage = require('../assets/src/circulomenu.png');
@@ -15,18 +15,18 @@ const MenuScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
-        colors={['#a1bce2', '#fff']}
-        style={styles.background}
-      >
-        <ScrollView 
-          style={styles.scrollView} 
-          contentContainerStyle={styles.scrollContent}
-        >
-          <View style={styles.container}>
-            <Text style={styles.title}>BEM VINDO AO SERENE</Text>
-            <Image source={menuImage} style={styles.menuImage} />
-          </View>
+      <View style={{ flex: 1 }}>
+        {/* Fundo com LinearGradient */}
+        <LinearGradient
+          colors={['#a1bce2', '#fff']}
+          style={StyleSheet.absoluteFill} // ocupa toda a tela
+        />
+
+        {/* Conteúdo interativo */}
+        <View style={styles.container}>
+          <Text style={styles.title}>BEM VINDO AO SERENE</Text>
+          <Image source={menuImage} style={styles.menuImage} />
+
           <View style={styles.balloonContainer}>
             {menuItems.map((item, index) => (
               <TouchableOpacity
@@ -45,32 +45,15 @@ const MenuScreen = ({ navigation }) => {
               </TouchableOpacity>
             ))}
           </View>
-        </ScrollView>
-      </LinearGradient>
+        </View>
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  background: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingTop: 20,
-    paddingBottom: 40,
-    alignItems: 'center',
-  },
-  container: {
-    width: '100%',
-    alignItems: 'center',
-  },
+  safeArea: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, alignItems: 'center', paddingTop: 20, paddingBottom: 40 },
   title: {
     fontSize: 33,
     fontWeight: 'bold',
@@ -84,12 +67,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 20,
     marginHorizontal: 20,
   },
-  menuImage: {
-    width: 200,
-    height: 200,
-    resizeMode: 'contain',
-    marginBottom: 15,
-  },
+  menuImage: { width: 200, height: 200, resizeMode: 'contain', marginBottom: 15 },
   balloonContainer: {
     width: '100%',
     borderRadius: 25,
@@ -107,9 +85,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.3)',
   },
-  lastButton: {
-    borderBottomWidth: 0,
-  },
+  lastButton: { borderBottomWidth: 0 },
   buttonText: {
     color: 'white',
     fontFamily: 'Bree-Serif',
