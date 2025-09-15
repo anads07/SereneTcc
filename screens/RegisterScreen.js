@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  Image, 
-  StyleSheet, 
-  ScrollView, 
-  Alert, 
-  ActivityIndicator, 
-  SafeAreaView 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+  SafeAreaView
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -26,6 +26,9 @@ const RegisterScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // URL do seu servidor backend - SUBSTITUA '[SEU_IP_AQUI]' PELO SEU IP LOCAL
+  const API_URL = 'http://[SEU_IP_AQUI]:3000';
+
   // validação simples do formulário
   const validateForm = () => {
     const newErrors = {};
@@ -33,118 +36,124 @@ const RegisterScreen = ({ navigation }) => {
     if (!email) newErrors.email = 'Email é obrigatório';
     else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email inválido';
     if (!password) newErrors.password = 'Senha é obrigatória';
-    else if (password.length < 6) newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // simula registro e exibe alerta
-  const handleRegister = () => {
-    if (!validateForm()) return;
-    
+  const handleRegister = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
+
+    try {
+      const response = await fetch(`${API_URL}/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Sucesso!', data.message);
+        navigation.navigate('Login');
+      } else {
+        Alert.alert('Erro no Registro', data.message || 'Erro ao registrar. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('Erro:', error);
+      Alert.alert('Erro de Conexão', 'Não foi possível conectar ao servidor. Verifique se o servidor está rodando e se o IP está correto.');
+    } finally {
       setLoading(false);
-      Alert.alert(
-        'Cadastro realizado!', 
-        'Sua conta foi criada com sucesso.',
-        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
-      );
-    }, 1500);
+    }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
-        colors={['#fff', '#a4c4ff']}
-        style={styles.background}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <View style={styles.container}>
-            {/* mensagem de boas-vindas */}
-            <View style={styles.content}>
-              <Text style={styles.welcomeText}>Seja bem-vindo!</Text>
-              <Text style={styles.subtitle}>Crie sua conta para começar.</Text>
-            </View>
+      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+        {/* fundo com gradiente */}
+        <LinearGradient
+          colors={['#afcdf2', '#fff']}
+          style={StyleSheet.absoluteFill}
+        />
 
-            {/* caixa do formulário */}
-            <View style={styles.formBox}>
-              {/* abas de login/cadastro */}
-              <View style={styles.tabContainer}>
-                <TouchableOpacity
-                  style={[styles.tabButton, styles.inactiveTab]}
-                  onPress={() => navigation.navigate('Login')}
-                >
-                  <Text style={styles.tabText}>ENTRAR</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.tabButton, styles.activeTab]}>
-                  <Text style={styles.tabText}>CADASTRAR</Text>
-                </TouchableOpacity>
-              </View>
+        {/* conteúdo da tela de registro */}
+        <View style={styles.container}>
+          <Image
+            source={require('../assets/src/logo.png')}
+            style={styles.logo}
+          />
+          <Text style={styles.title}>Registro</Text>
 
-              {/* campo nome de usuário */}
-              <View style={styles.inputContainer}>
-                <Image source={userIcon} style={styles.inputIcon} />
-                <TextInput
-                  style={[styles.inputField, errors.username && styles.errorInput]}
-                  placeholder="Nome de usuário"
-                  placeholderTextColor="#FFFFFF"
-                  value={username}
-                  onChangeText={setUsername}
-                />
-              </View>
-              {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
-
-              {/* campo email */}
-              <View style={styles.inputContainer}>
-                <Image source={emailIcon} style={styles.inputIcon} />
-                <TextInput
-                  style={[styles.inputField, errors.email && styles.errorInput]}
-                  placeholder="Email"
-                  placeholderTextColor="#FFFFFF"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={email}
-                  onChangeText={setEmail}
-                />
-              </View>
-              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-
-              {/* campo senha */}
-              <View style={styles.inputContainer}>
-                <Image source={senhaIcon} style={styles.inputIcon} />
-                <TextInput
-                  style={[styles.inputField, errors.password && styles.errorInput]}
-                  placeholder="Senha"
-                  placeholderTextColor="#FFFFFF"
-                  secureTextEntry={true}
-                  value={password}
-                  onChangeText={setPassword}
-                />
-              </View>
-              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-
-              {/* aviso de privacidade */}
-              <Text style={styles.privacyText}>
-                Ao cadastrar, você concorda com nossos Termos de Serviço e Política de Privacidade.
-              </Text>
-
-              {/* botão de cadastro ou indicador de loading */}
-              {loading ? (
-                <ActivityIndicator size="large" color="#0c4793" />
-              ) : (
-                <TouchableOpacity
-                  style={styles.registerButton}
-                  onPress={handleRegister}
-                >
-                  <Text style={styles.buttonText}>CADASTRAR</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
+              style={[styles.tabButton, styles.inactiveTab]}
+              onPress={() => navigation.navigate('Login')}
+            >
+              <Text style={styles.tabText}>Login</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.tabButton, styles.activeTab]}>
+              <Text style={styles.tabText}>Registro</Text>
+            </TouchableOpacity>
           </View>
-        </ScrollView>
-      </LinearGradient>
+
+          <View style={styles.inputContainer}>
+            <Image source={userIcon} style={styles.inputIcon} />
+            <TextInput
+              style={styles.inputField}
+              placeholder="Nome de Usuário"
+              placeholderTextColor="#f0f0f0"
+              autoCapitalize="none"
+              value={username}
+              onChangeText={setUsername}
+            />
+          </View>
+          {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
+
+          <View style={styles.inputContainer}>
+            <Image source={emailIcon} style={styles.inputIcon} />
+            <TextInput
+              style={styles.inputField}
+              placeholder="Email"
+              placeholderTextColor="#f0f0f0"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
+          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+
+          <View style={styles.inputContainer}>
+            <Image source={senhaIcon} style={styles.inputIcon} />
+            <TextInput
+              style={styles.inputField}
+              placeholder="Senha"
+              placeholderTextColor="#f0f0f0"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+          </View>
+          {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+
+          <TouchableOpacity
+            style={styles.registerButton}
+            onPress={handleRegister}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Cadastrar</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -154,48 +163,36 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  scrollContainer: {
+  scrollViewContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
-  },
-  background: {
-    flex: 1,
+    padding: 20,
   },
   container: {
-    width: '90%',
-    maxWidth: 400,
+    width: '100%',
     alignItems: 'center',
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  content: {
-    alignSelf: 'flex-start',
+  logo: {
+    width: 150,
+    height: 50,
+    resizeMode: 'contain',
     marginBottom: 20,
-    marginLeft: 10,
   },
-  welcomeText: {
-    fontSize: 40,
+  title: {
+    fontSize: 28,
+    fontFamily: 'Bree-Serif',
     fontWeight: 'bold',
     color: '#0c4793',
-    fontFamily: 'Bree-Serif',
-  },
-  subtitle: {
-    fontFamily: 'Bree-Serif',
-    fontSize: 18,
-    color: '#333',
-    marginTop: 5,
-  },
-  formBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    width: '100%',
-    borderRadius: 20,
-    padding: 25,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 8,
+    marginBottom: 10,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -251,34 +248,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     shadowColor: '#0c4793',
-    shadowOffset: { width: 0, height: 5 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 10,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
   buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: '#fff',
     fontSize: 18,
-    fontFamily: 'Bree-Serif',
-  },
-  errorInput: {
-    borderWidth: 1,
-    borderColor: '#FF3B30',
+    fontWeight: 'bold',
   },
   errorText: {
-    color: '#FF3B30',
-    fontSize: 12,
+    color: 'red',
     alignSelf: 'flex-start',
     marginLeft: 15,
-    marginBottom: 10,
-  },
-  privacyText: {
-    color: '#666',
-    fontSize: 12,
-    marginVertical: 15,
-    textAlign: 'center',
-    fontFamily: 'Bree-Serif',
+    marginBottom: 5,
   },
 });
 
