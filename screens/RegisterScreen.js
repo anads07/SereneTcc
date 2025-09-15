@@ -26,8 +26,8 @@ const RegisterScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // URL do seu servidor backend - SUBSTITUA '[SEU_IP_AQUI]' PELO SEU IP LOCAL
-  const API_URL = 'http://[SEU_IP_AQUI]:3000';
+  // URL do seu servidor backend - IP local do seu computador
+  const API_URL = 'http://172.20.160.1:3000';
 
   // validação simples do formulário
   const validateForm = () => {
@@ -44,7 +44,6 @@ const RegisterScreen = ({ navigation }) => {
     if (!validateForm()) {
       return;
     }
-
     setLoading(true);
 
     try {
@@ -57,16 +56,15 @@ const RegisterScreen = ({ navigation }) => {
       });
 
       const data = await response.json();
-
       if (response.ok) {
         Alert.alert('Sucesso!', data.message);
         navigation.navigate('Login');
       } else {
-        Alert.alert('Erro no Registro', data.message || 'Erro ao registrar. Tente novamente.');
+        Alert.alert('Erro no Cadastro', data.message || 'Ocorreu um erro.');
       }
     } catch (error) {
-      console.error('Erro:', error);
-      Alert.alert('Erro de Conexão', 'Não foi possível conectar ao servidor. Verifique se o servidor está rodando e se o IP está correto.');
+      console.error('Erro de rede:', error);
+      Alert.alert('Erro de Conexão', 'Não foi possível se conectar ao servidor. Verifique se o servidor está rodando e se o IP está correto.');
     } finally {
       setLoading(false);
     }
@@ -74,86 +72,77 @@ const RegisterScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-        {/* fundo com gradiente */}
-        <LinearGradient
-          colors={['#afcdf2', '#fff']}
-          style={StyleSheet.absoluteFill}
-        />
+      <LinearGradient colors={['#b8d1ff', '#fff']} style={styles.background}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.container}>
+            <Text style={styles.title}>CADASTRE-SE</Text>
+            <View style={styles.tabContainer}>
+              <TouchableOpacity
+                style={[styles.tabButton, styles.inactiveTab]}
+                onPress={() => navigation.navigate('Login')}
+              >
+                <Text style={styles.tabText}>Login</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.tabButton, styles.activeTab]}>
+                <Text style={styles.tabText}>Cadastro</Text>
+              </TouchableOpacity>
+            </View>
 
-        {/* conteúdo da tela de registro */}
-        <View style={styles.container}>
-          <Image
-            source={require('../assets/src/logo.png')}
-            style={styles.logo}
-          />
-          <Text style={styles.title}>Registro</Text>
+            <View style={styles.formContainer}>
+              <View style={styles.inputContainer}>
+                <Image source={userIcon} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.inputField}
+                  placeholder="Nome de usuário"
+                  value={username}
+                  onChangeText={setUsername}
+                />
+              </View>
+              {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
 
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[styles.tabButton, styles.inactiveTab]}
-              onPress={() => navigation.navigate('Login')}
-            >
-              <Text style={styles.tabText}>Login</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.tabButton, styles.activeTab]}>
-              <Text style={styles.tabText}>Registro</Text>
-            </TouchableOpacity>
+              <View style={styles.inputContainer}>
+                <Image source={emailIcon} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.inputField}
+                  placeholder="Email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+              </View>
+              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+
+              <View style={styles.inputContainer}>
+                <Image source={senhaIcon} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.inputField}
+                  placeholder="Senha"
+                  secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
+                />
+              </View>
+              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleRegister}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>CADASTRAR</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.linkText}>Já tem uma conta? Faça login aqui</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-
-          <View style={styles.inputContainer}>
-            <Image source={userIcon} style={styles.inputIcon} />
-            <TextInput
-              style={styles.inputField}
-              placeholder="Nome de Usuário"
-              placeholderTextColor="#f0f0f0"
-              autoCapitalize="none"
-              value={username}
-              onChangeText={setUsername}
-            />
-          </View>
-          {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
-
-          <View style={styles.inputContainer}>
-            <Image source={emailIcon} style={styles.inputIcon} />
-            <TextInput
-              style={styles.inputField}
-              placeholder="Email"
-              placeholderTextColor="#f0f0f0"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
-          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-
-          <View style={styles.inputContainer}>
-            <Image source={senhaIcon} style={styles.inputIcon} />
-            <TextInput
-              style={styles.inputField}
-              placeholder="Senha"
-              placeholderTextColor="#f0f0f0"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
-          </View>
-          {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={handleRegister}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Cadastrar</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </LinearGradient>
     </SafeAreaView>
   );
 };
@@ -161,35 +150,23 @@ const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
   },
-  scrollViewContainer: {
+  background: {
+    flex: 1,
+  },
+  scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    paddingVertical: 20,
   },
   container: {
-    width: '100%',
+    flex: 1,
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  logo: {
-    width: 150,
-    height: 50,
-    resizeMode: 'contain',
-    marginBottom: 20,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
   },
   title: {
-    fontSize: 28,
-    fontFamily: 'Bree-Serif',
+    fontSize: 30,
     fontWeight: 'bold',
     color: '#0c4793',
     marginBottom: 10,
@@ -217,6 +194,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  formContainer: {
+    width: '100%',
+    alignItems: 'center',
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -237,32 +218,37 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     paddingRight: 15,
-    color: 'white',
+    color: '#fff',
     fontSize: 16,
   },
-  registerButton: {
+  button: {
     backgroundColor: '#0c4793',
     paddingVertical: 15,
     borderRadius: 15,
     width: '100%',
     alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#0c4793',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
+    marginTop: 20,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
+  linkText: {
+    color: '#0c4793',
+    marginTop: 10,
+  },
   errorText: {
     color: 'red',
     alignSelf: 'flex-start',
-    marginLeft: 15,
     marginBottom: 5,
+    marginLeft: 10,
   },
 });
 
