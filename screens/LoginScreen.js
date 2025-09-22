@@ -13,21 +13,18 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Ícones utilizados na tela
 const emailIcon = require('../assets/src/email.png');
 const senhaIcon = require('../assets/src/senha.png');
 
 const LoginScreen = ({ navigation }) => {
-  // Estados do formulário e loading
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
   // URL do seu servidor backend - IP local do seu computador
-  const API_URL = 'http://172.20.160.1:3000';
+  const API_URL = 'http://172.23.112.1:3000';
 
-  // Validação simples do formulário
   const validateForm = () => {
     const newErrors = {};
     if (!email) newErrors.email = 'Email é obrigatório';
@@ -55,7 +52,8 @@ const LoginScreen = ({ navigation }) => {
       const data = await response.json();
       if (response.ok) {
         Alert.alert('Sucesso!', data.message);
-        navigation.navigate('Menu');
+        // >>> AJUSTE CRÍTICO AQUI: Passa o userId para a tela de Menu
+        navigation.navigate('Menu', { userId: data.userId });
       } else {
         Alert.alert('Erro no Login', data.message || 'Ocorreu um erro.');
       }
@@ -84,7 +82,6 @@ const LoginScreen = ({ navigation }) => {
                 <Text style={styles.tabText}>Cadastro</Text>
               </TouchableOpacity>
             </View>
-
             <View style={styles.formContainer}>
               <View style={styles.inputContainer}>
                 <Image source={emailIcon} style={styles.inputIcon} />
@@ -98,7 +95,6 @@ const LoginScreen = ({ navigation }) => {
                 />
               </View>
               {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-
               <View style={styles.inputContainer}>
                 <Image source={senhaIcon} style={styles.inputIcon} />
                 <TextInput
@@ -110,7 +106,6 @@ const LoginScreen = ({ navigation }) => {
                 />
               </View>
               {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-
               <TouchableOpacity
                 style={styles.button}
                 onPress={handleLogin}
@@ -122,7 +117,6 @@ const LoginScreen = ({ navigation }) => {
                   <Text style={styles.buttonText}>LOGIN</Text>
                 )}
               </TouchableOpacity>
-
               <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text style={styles.linkText}>Não tem uma conta? Crie uma aqui</Text>
               </TouchableOpacity>

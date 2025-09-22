@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  Image, 
-  TextInput, 
-  Alert, 
-  ScrollView, 
-  SafeAreaView, 
-  Dimensions 
+import React, { useState, useEffect } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  Alert,
+  ScrollView,
+  SafeAreaView,
+  Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,16 +17,22 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
+// URL do seu servidor backend - SUBSTITUA '[SEU_IP_AQUI]' PELO SEU IP LOCAL
+const API_URL = 'http://172.23.112.1:3000';
+
 // Emoções disponíveis no diário
 const moods = [
   { name: 'Feliz', icon: 'happy-outline', color: '#a1bce2' },
   { name: 'Triste', icon: 'sad-outline', color: '#a1bce2' },
-  { name: 'Raiva', icon: 'md-flame-outline', color: '#84a9da' },
+  { name: 'Raiva', icon: 'flame-outline', color: '#84a9da' }, // Corrigido aqui!
   { name: 'Estressado', icon: 'flash-outline', color: '#a4c4ff' },
   { name: 'Calmo', icon: 'leaf-outline', color: '#b8d1ff' },
 ];
 
-const DiarioScreen = ({ navigation }) => {
+const DiarioScreen = ({ navigation, route }) => {
+  // Obtém o userId dos parâmetros de navegação
+  const { userId } = route.params;
+
   // Estados do diário
   const [entries, setEntries] = useState([]);
   const [showList, setShowList] = useState(true);
@@ -35,6 +41,34 @@ const DiarioScreen = ({ navigation }) => {
   const [selectedMood, setSelectedMood] = useState(null);
   const [expandedEntryId, setExpandedEntryId] = useState(null);
   const [imageAddedMessage, setImageAddedMessage] = useState('');
+
+  // Efeito para buscar as anotações quando a tela é carregada
+  useEffect(() => {
+    const fetchEntries = async () => {
+      try {
+        const response = await fetch(`${API_URL}/diary/getEntries/${userId}`);
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        const fetchedEntries = await response.json();
+        // Mapeia os dados para o formato que a lista de anotações espera
+        const formattedEntries = fetchedEntries.map(entry => ({
+          id: entry.id,
+          date: new Date(entry.created_at).toLocaleDateString('pt-BR'),
+          text: entry.entry_text,
+          mood: moods.find(m => m.name === entry.mood),
+          image: entry.image_url,
+        }));
+        setEntries(formattedEntries);
+      } catch (error) {
+        console.error('Erro ao buscar entradas:', error);
+      }
+    };
+
+    if (userId) {
+      fetchEntries();
+    }
+  }, [userId, showList]); // Recarrega as entradas quando o showList muda
 
   // Voltar: retorna para lista ou navegação
   const handleBackPress = () => {
@@ -54,7 +88,7 @@ const DiarioScreen = ({ navigation }) => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaType.Images, // Corrigido aqui!
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
@@ -69,27 +103,45 @@ const DiarioScreen = ({ navigation }) => {
   };
 
   // Salvar uma nova anotação
-  const handleSaveEntry = () => {
+  const handleSaveEntry = async () => {
     if (newEntryText.trim() === '' || !selectedMood) {
       Alert.alert('Atenção', 'Por favor, escreva um texto e selecione seu humor.');
       return;
     }
 
     const newEntry = {
-      id: Date.now(),
-      date: new Date().toLocaleDateString('pt-BR'),
+      userId: userId, // Agora o userId vem dos parâmetros de navegação
       text: newEntryText,
+      mood: selectedMood.name,
       image: newEntryImage,
-      mood: selectedMood,
     };
 
-    setEntries([...entries, newEntry]);
-    setNewEntryText('');
-    setNewEntryImage(null);
-    setSelectedMood(null);
-    setImageAddedMessage('');
-    setShowList(true);
+    try {
+      const response = await fetch(`${API_URL}/diary/save`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newEntry),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const result = await response.json();
+      Alert.alert('Sucesso!', 'Entrada salva com sucesso!');
+      setNewEntryText('');
+      setNewEntryImage(null);
+      setSelectedMood(null);
+      setImageAddedMessage('');
+      setShowList(true); // Exibe a lista após salvar
+    } catch (error) {
+      console.error('Erro ao salvar entrada:', error);
+      Alert.alert('Erro', 'Não foi possível salvar a entrada. Tente novamente.');
+    }
   };
+
 
   // Expandir ou recolher anotação
   const toggleExpand = (id) => {
@@ -100,7 +152,7 @@ const DiarioScreen = ({ navigation }) => {
   const renderDiaryForm = () => (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient colors={['#d1e4ff', '#c4d8f2']} style={styles.background}>
-        
+
         {/* Cabeçalho do formulário */}
         <View style={styles.headerOld}>
           <TouchableOpacity onPress={handleBackPress} style={styles.backButtonOld}>
@@ -117,7 +169,7 @@ const DiarioScreen = ({ navigation }) => {
           <View style={styles.formContainer}>
             <Text style={styles.formTitle}>O que aconteceu hoje?</Text>
             <Text style={styles.formDate}>{new Date().toLocaleDateString('pt-BR')}</Text>
-            
+
             <TextInput
               style={styles.textInput}
               multiline
@@ -138,10 +190,10 @@ const DiarioScreen = ({ navigation }) => {
                   ]}
                   onPress={() => setSelectedMood(mood)}
                 >
-                  <Ionicons 
-                    name={mood.icon} 
-                    size={28} 
-                    color={selectedMood?.name === mood.name ? '#fff' : mood.color} 
+                  <Ionicons
+                    name={mood.icon}
+                    size={28}
+                    color={selectedMood?.name === mood.name ? '#fff' : mood.color}
                   />
                   <Text style={[styles.moodText, selectedMood?.name === mood.name && { color: '#fff' }]}>
                     {mood.name}
@@ -188,7 +240,7 @@ const DiarioScreen = ({ navigation }) => {
             <Text style={styles.listTitle}>Minhas Anotações</Text>
             <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={true}>
               {entries.length > 0 ? (
-                entries.slice().reverse().map((entry) => (
+                entries.map((entry) => (
                   <TouchableOpacity
                     key={entry.id}
                     style={styles.entryContainer}
@@ -196,9 +248,11 @@ const DiarioScreen = ({ navigation }) => {
                   >
                     <View style={styles.entryHeader}>
                       <Text style={styles.entryDate}>{entry.date}</Text>
-                      <View style={[styles.moodCircle, { backgroundColor: entry.mood.color }]}>
-                        <Ionicons name={entry.mood.icon} size={20} color="#fff" />
-                      </View>
+                      {entry.mood && (
+                        <View style={[styles.moodCircle, { backgroundColor: entry.mood.color }]}>
+                          <Ionicons name={entry.mood.icon} size={20} color="#fff" />
+                        </View>
+                      )}
                     </View>
 
                     {expandedEntryId === entry.id && (
@@ -264,7 +318,6 @@ const styles = StyleSheet.create({
   },
   headerTextList: {
     fontSize: 28,
-    fontFamily: 'Bree-Serif',
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
@@ -301,7 +354,6 @@ const styles = StyleSheet.create({
     color: '#0c4793',
     textAlign: 'center',
     flex: 1,
-    fontFamily: 'Bree-Serif',
   },
   logoContainerOld: {
     width: 40,
@@ -341,7 +393,6 @@ const styles = StyleSheet.create({
     color: '#0c4793',
     textAlign: 'center',
     marginBottom: 15,
-    fontFamily: 'Bree-Serif',
   },
   listContent: {
     flexGrow: 1,
@@ -400,7 +451,6 @@ const styles = StyleSheet.create({
     color: '#0c4793',
     textAlign: 'center',
     marginTop: 20,
-    fontFamily: 'Bree-Serif',
   },
   addButton: {
     position: 'absolute',
@@ -432,7 +482,6 @@ const styles = StyleSheet.create({
     color: '#0c4793',
     textAlign: 'center',
     marginBottom: 10,
-    fontFamily: 'Bree-Serif',
   },
   formDate: {
     fontSize: 18,

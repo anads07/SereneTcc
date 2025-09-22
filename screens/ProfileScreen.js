@@ -1,5 +1,4 @@
-// Importações principais
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,28 +9,96 @@ import {
   Alert,
   SafeAreaView,
   ScrollView,
+  ActivityIndicator
 } from 'react-native';
 
-// Ícones da biblioteca Expo
 import { Ionicons } from '@expo/vector-icons';
-
-// Biblioteca para selecionar imagens da galeria
 import * as ImagePicker from 'expo-image-picker';
-
-// Gradiente de fundo
 import { LinearGradient } from 'expo-linear-gradient';
 
-const ProfileScreen = ({ navigation }) => {
-  // Estados do usuário
-  const [userName, setUserName] = useState('NOME');
-  const [userEmail, setUserEmail] = useState('EMAIL@SWXIND.COM');
-  const [userPassword, setUserPassword] = useState('SWXIND');
-  const [userPhone, setUserPhone] = useState('(DD) 1111111-1111');
-  const [profilePicture, setProfilePicture] = useState(require('../assets/src/user.png'));
+// Adicione o seu IP aqui, o mesmo do arquivo server.js
+const API_URL = 'http://172.23.112.1:3000'; // Substitua pelo seu IP
 
-  // Função para salvar alterações do perfil
-  const handleEditProfile = () => {
-    Alert.alert('Sucesso!', 'Perfil editado com sucesso!');
+const ProfileScreen = ({ navigation, route }) => {
+  // O ID do usuário deve ser passado para esta tela na navegação.
+  const { userId } = route.params;
+
+  // Estados do usuário
+  const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userPassword, setUserPassword] = useState('');
+  const [userPhone, setUserPhone] = useState('');
+  const [profilePicture, setProfilePicture] = useState(null);
+
+  // Função para buscar os dados do perfil do servidor
+  const fetchProfileData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/profile/${userId}`);
+      if (!response.ok) {
+        throw new Error('Falha ao carregar os dados do perfil.');
+      }
+      const data = await response.json();
+
+      setUserName(data.name);
+      setUserEmail(data.email);
+      setUserPhone(data.phone);
+      setProfilePicture(data.profile_picture ? { uri: data.profile_picture } : require('../assets/src/user.png'));
+
+    } catch (error) {
+      console.error('Erro ao buscar dados do perfil:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os dados do perfil.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Chama a função para buscar os dados assim que a tela é carregada
+  useEffect(() => {
+    fetchProfileData();
+  }, [userId]);
+
+  // Função para salvar alterações do perfil NO BANCO DE DADOS
+  const handleSaveProfile = async () => {
+    if (userEmail.trim() === '' || userName.trim() === '') {
+      Alert.alert('Atenção', 'Nome e e-mail não podem ficar vazios.');
+      return;
+    }
+
+    const updatedProfile = {
+      name: userName,
+      email: userEmail,
+      password: userPassword, // Note: é melhor ter uma tela separada para senhas
+      phone: userPhone,
+      profilePicture: profilePicture?.uri,
+    };
+
+    try {
+      const response = await fetch(`${API_URL}/profile/update/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedProfile),
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao salvar as alterações.');
+      }
+
+      Alert.alert('Sucesso!', 'Perfil atualizado com sucesso!');
+      // Atualiza o estado para refletir a nova imagem
+      if (profilePicture?.uri) {
+        setProfilePicture({ uri: profilePicture.uri });
+      }
+      // Opcionalmente, volte para a tela anterior
+      navigation.goBack();
+
+    } catch (error) {
+      console.error('Erro ao salvar perfil:', error);
+      Alert.alert('Erro', 'Não foi possível salvar as alterações. Tente novamente.');
+    }
   };
 
   // Função para editar a foto do perfil
@@ -53,6 +120,15 @@ const ProfileScreen = ({ navigation }) => {
       setProfilePicture({ uri: result.assets[0].uri });
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0c4793" />
+        <Text style={styles.loadingText}>Carregando perfil...</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -92,7 +168,16 @@ const ProfileScreen = ({ navigation }) => {
           </View>
 
           {/* Nome do usuário */}
-          <Text style={styles.userName}>{userName}</Text>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>NOME:</Text>
+            <TextInput
+              style={styles.input}
+              value={userName}
+              onChangeText={setUserName}
+              placeholder="Nome"
+              placeholderTextColor="#888"
+            />
+          </View>
 
           {/* Campo para editar email */}
           <View style={styles.inputContainer}>
@@ -133,7 +218,7 @@ const ProfileScreen = ({ navigation }) => {
           </View>
 
           {/* Botão para salvar alterações */}
-          <TouchableOpacity style={styles.saveButton} onPress={handleEditProfile}>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSaveProfile}>
             <Text style={styles.saveButtonText}>Salvar Alterações</Text>
           </TouchableOpacity>
         </View>
@@ -148,7 +233,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f5',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#0c4793',
+  },
   // Gradiente de fundo
   gradientBackground: {
     ...StyleSheet.absoluteFillObject,
@@ -235,15 +330,6 @@ const styles = StyleSheet.create({
   },
 
   // Nome do usuário
-  userName: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 30,
-    color: '#000',
-    fontFamily: 'Bree-Serif',
-  },
-
-  // Campos de input
   inputContainer: {
     width: '100%',
     marginBottom: 10,

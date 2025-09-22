@@ -5,7 +5,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 // imagem do menu principal
 const menuImage = require('../assets/src/circulomenu.png');
 
-const MenuScreen = ({ navigation }) => {
+const MenuScreen = ({ navigation, route }) => {
+  // Pega o userId passado da tela de login
+  const { userId } = route.params || {};
+
   // itens do menu com cores e telas correspondentes
   const menuItems = [
     { text: 'Acesse seu perfil', color: '#afcdf2', screen: 'Profile' },
@@ -28,22 +31,17 @@ const MenuScreen = ({ navigation }) => {
         <View style={styles.container}>
           <Text style={styles.title}>BEM VINDO AO SERENE</Text>
           <Image source={menuImage} style={styles.menuImage} />
-
-          <View style={styles.balloonContainer}>
+          <View style={styles.buttonContainer}>
             {menuItems.map((item, index) => (
               <TouchableOpacity
                 key={index}
-                style={[
-                  styles.menuButton,
-                  { backgroundColor: item.color },
-                  index === menuItems.length - 1 && styles.lastButton
-                ]}
-                onPress={() => navigation.navigate(item.screen)}
-                accessible={true}
-                accessibilityLabel={`Navegar para ${item.text}`}
-                accessibilityHint={`Clique para acessar ${item.text}`}
+                style={[styles.balloonContainer, { backgroundColor: item.color }]}
+                // Passa o userId para a tela do diário, se estiver disponível
+                onPress={() => navigation.navigate(item.screen, { userId: userId })}
               >
-                <Text style={styles.buttonText}>{item.text}</Text>
+                <View style={styles.balloon}>
+                  <Text style={styles.buttonText}>{item.text}</Text>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
@@ -86,6 +84,11 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginBottom: 15,
   },
+  buttonContainer: {
+    width: '100%',
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
   balloonContainer: {
     width: '100%',
     borderRadius: 25,
@@ -98,27 +101,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    marginBottom: 15,
   },
-  menuButton: {
-    width: '100%',
-    paddingVertical: 18,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.3)',
-  },
-  lastButton: {
-    borderBottomWidth: 0,
+  balloon: {
+    paddingVertical: 20,
+    paddingHorizontal: 15,
   },
   buttonText: {
-    color: 'white',
-    fontFamily: 'Bree-Serif',
-    fontSize: 22,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: {
-      width: 1,
-      height: 1,
-    },
-    textShadowRadius: 1,
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

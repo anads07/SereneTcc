@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions, ScrollView, ImageBackground } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions, ScrollView, ImageBackground, Alert } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const screenWidth = Dimensions.get('window').width;
+const API_URL = 'http://172.23.112.1:3000'; // Substitua pelo seu IP
 
 // Frases motivacionais para o post-it
 const frases = [
@@ -24,62 +25,83 @@ const frases = [
   'Você é capaz de coisas incríveis.'
 ];
 
-// Dados de humor padrão
-const humorDataDefault = {
-  raiva: 2,
-  triste: 5,
-  media: 1,
-  feliz: 8,
-  muitofeliz: 10
-};
-
-// Cores do gráfico
-const chartColors = [
-  '#e52b17', // Estressado
-  '#ff9900', // Magoado
-  '#f2cd20', // Pensativo
-  '#66cc33', // Bem
-  '#00bf63'  // Ótimo
+// Mapeamento de humor para cores e nomes do gráfico
+const moods = [
+  { name: 'Estressado', type: 'estressado', color: '#e52b17' },
+  { name: 'Magoado', type: 'magoado', color: '#ff9900' },
+  { name: 'Pensativo', type: 'pensativo', color: '#f2cd20' },
+  { name: 'Bem', type: 'bem', color: '#66cc33' },
+  { name: 'Ótimo', type: 'otimo', color: '#00bf63' }
 ];
 
-const RelatorioScreen = ({ navigation }) => {
+const RelatorioScreen = ({ navigation, route }) => {
+  const { userId } = route.params;
   const [frase, setFrase] = useState('');
-  const [humorData, setHumorData] = useState(humorDataDefault);
+  const [humorData, setHumorData] = useState([]);
 
-  useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * frases.length);
-    setFrase(frases[randomIndex]);
-  }, []);
+  // Função para buscar os dados de humor do servidor
+  const fetchHumorData = async () => {
+    try {
+      const response = await fetch(`${API_URL}/mood/getReport/${userId}`);
+      if (!response.ok) {
+        throw new Error('Não foi possível carregar os dados do relatório.');
+      }
+      const data = await response.json();
 
-  const registrarHumor = (tipo) => {
-    setHumorData((prev) => ({
-      ...prev,
-      [tipo]: prev[tipo] + 1
-    }));
+      // Mapeia os dados do banco para o formato do PieChart
+      const formattedData = data.map(item => {
+        const mood = moods.find(m => m.type === item.mood_type);
+        return {
+          name: mood.name,
+          population: item.count,
+          color: mood.color,
+          legendFontColor: '#000',
+          legendFontSize: 16
+        };
+      });
+      setHumorData(formattedData);
+    } catch (error) {
+      console.error('Erro ao buscar dados de humor:', error);
+      Alert.alert('Erro', 'Não foi possível carregar o relatório de humor.');
+    }
   };
 
-  const data = [
-    { name: 'Estressado', population: humorData.raiva, color: chartColors[0], legendFontColor: '#000', legendFontSize: 16 },
-    { name: 'Magoado', population: humorData.triste, color: chartColors[1], legendFontColor: '#000', legendFontSize: 16 },
-    { name: 'Pensativo', population: humorData.media, color: chartColors[2], legendFontColor: '#000', legendFontSize: 16 },
-    { name: 'Bem', population: humorData.feliz, color: chartColors[3], legendFontColor: '#000', legendFontSize: 16 },
-    { name: 'Ótimo', population: humorData.muitofeliz, color: chartColors[4], legendFontColor: '#000', legendFontSize: 16 }
-  ];
+  useEffect(() => {
+    // Escolhe uma frase aleatória na primeira renderização
+    const randomIndex = Math.floor(Math.random() * frases.length);
+    setFrase(frases[randomIndex]);
+
+    // Busca os dados do servidor
+    fetchHumorData();
+  }, []);
+
+  // Função para registrar o humor no servidor
+  const registrarHumor = async (moodType) => {
+    try {
+      const response = await fetch(`${API_URL}/mood/save`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, moodType }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao salvar o humor.');
+      }
+
+      // Após salvar, busca os dados atualizados
+      Alert.alert('Sucesso!', 'Seu humor foi registrado com sucesso!');
+      fetchHumorData();
+
+    } catch (error) {
+      console.error('Erro ao registrar humor:', error);
+      Alert.alert('Erro', 'Não foi possível registrar seu humor.');
+    }
+  };
 
   const handleBack = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-    const parent = navigation.getParent?.();
-    if (parent?.canGoBack()) {
-      parent.goBack();
-      return;
-    }
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Menu' }],
-    });
+    navigation.goBack();
   };
 
   return (
@@ -88,7 +110,7 @@ const RelatorioScreen = ({ navigation }) => {
         colors={['#a4c4ff', '#c5d7f8', '#e3eaf5']}
         style={styles.background}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           style={styles.scrollView}
         >
@@ -109,19 +131,19 @@ const RelatorioScreen = ({ navigation }) => {
 
           {/* EMOÇÕES */}
           <View style={styles.emotionsContainer}>
-            <TouchableOpacity onPress={() => registrarHumor('raiva')} style={styles.emojiButton}>
+            <TouchableOpacity onPress={() => registrarHumor('estressado')} style={styles.emojiButton}>
               <Image source={require('../assets/src/raiva.png')} style={styles.emoji} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => registrarHumor('triste')} style={styles.emojiButton}>
+            <TouchableOpacity onPress={() => registrarHumor('magoado')} style={styles.emojiButton}>
               <Image source={require('../assets/src/triste.png')} style={styles.emoji} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => registrarHumor('media')} style={styles.emojiButton}>
+            <TouchableOpacity onPress={() => registrarHumor('pensativo')} style={styles.emojiButton}>
               <Image source={require('../assets/src/media.png')} style={styles.emoji} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => registrarHumor('feliz')} style={styles.emojiButton}>
+            <TouchableOpacity onPress={() => registrarHumor('bem')} style={styles.emojiButton}>
               <Image source={require('../assets/src/feliz.png')} style={styles.emoji} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => registrarHumor('muitofeliz')} style={styles.emojiButton}>
+            <TouchableOpacity onPress={() => registrarHumor('otimo')} style={styles.emojiButton}>
               <Image source={require('../assets/src/muitofeliz.png')} style={styles.emoji} />
             </TouchableOpacity>
           </View>
@@ -154,24 +176,28 @@ const RelatorioScreen = ({ navigation }) => {
           {/* RESUMO SEMANAL (GRÁFICO) */}
           <View style={styles.resumoContainer}>
             <Text style={styles.resumoText}>RESUMO SEMANAL</Text>
-            <PieChart
-              data={data}
-              width={screenWidth * 0.7}
-              height={160}
-              accessor="population"
-              backgroundColor="transparent"
-              paddingLeft="15"
-              absolute
-              hasLegend
-              chartConfig={{
-                backgroundGradientFrom: '#ffffff',
-                backgroundGradientTo: '#ffffff',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              }}
-              style={styles.chartStyle}
-            />
+            {humorData.length > 0 ? (
+              <PieChart
+                data={humorData}
+                width={screenWidth * 0.7}
+                height={160}
+                accessor="population"
+                backgroundColor="transparent"
+                paddingLeft="15"
+                absolute
+                hasLegend
+                chartConfig={{
+                  backgroundGradientFrom: '#ffffff',
+                  backgroundGradientTo: '#ffffff',
+                  decimalPlaces: 0,
+                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                }}
+                style={styles.chartStyle}
+              />
+            ) : (
+              <Text style={styles.noDataText}>Nenhum dado de humor encontrado nesta semana.</Text>
+            )}
           </View>
         </ScrollView>
       </LinearGradient>
@@ -302,7 +328,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginHorizontal: 10,
   },
+  noDataText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#555',
+  }
 });
 
 export default RelatorioScreen;
-
