@@ -17,23 +17,21 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
-// URL do seu servidor backend - SUBSTITUA '[SEU_IP_AQUI]' PELO SEU IP LOCAL
-const API_URL = 'http://172.23.112.1:3000';
+// URL do seu servidor backend
+const API_URL = 'http://172.29.48.1:3000';
 
-// Emoções disponíveis no diário
+// Emoções disponíveis
 const moods = [
   { name: 'Feliz', icon: 'happy-outline', color: '#a1bce2' },
   { name: 'Triste', icon: 'sad-outline', color: '#a1bce2' },
-  { name: 'Raiva', icon: 'flame-outline', color: '#84a9da' }, // Corrigido aqui!
+  { name: 'Raiva', icon: 'flame-outline', color: '#84a9da' },
   { name: 'Estressado', icon: 'flash-outline', color: '#a4c4ff' },
   { name: 'Calmo', icon: 'leaf-outline', color: '#b8d1ff' },
 ];
 
 const DiarioScreen = ({ navigation, route }) => {
-  // Obtém o userId dos parâmetros de navegação
   const { userId } = route.params;
 
-  // Estados do diário
   const [entries, setEntries] = useState([]);
   const [showList, setShowList] = useState(true);
   const [newEntryText, setNewEntryText] = useState('');
@@ -42,7 +40,7 @@ const DiarioScreen = ({ navigation, route }) => {
   const [expandedEntryId, setExpandedEntryId] = useState(null);
   const [imageAddedMessage, setImageAddedMessage] = useState('');
 
-  // Efeito para buscar as anotações quando a tela é carregada
+  // Buscar entradas do diário
   useEffect(() => {
     const fetchEntries = async () => {
       try {
@@ -51,7 +49,7 @@ const DiarioScreen = ({ navigation, route }) => {
           throw new Error(`Erro HTTP: ${response.status}`);
         }
         const fetchedEntries = await response.json();
-        // Mapeia os dados para o formato que a lista de anotações espera
+
         const formattedEntries = fetchedEntries.map(entry => ({
           id: entry.id,
           date: new Date(entry.created_at).toLocaleDateString('pt-BR'),
@@ -59,6 +57,7 @@ const DiarioScreen = ({ navigation, route }) => {
           mood: moods.find(m => m.name === entry.mood),
           image: entry.image_url,
         }));
+
         setEntries(formattedEntries);
       } catch (error) {
         console.error('Erro ao buscar entradas:', error);
@@ -68,9 +67,9 @@ const DiarioScreen = ({ navigation, route }) => {
     if (userId) {
       fetchEntries();
     }
-  }, [userId, showList]); // Recarrega as entradas quando o showList muda
+  }, [userId, showList]);
 
-  // Voltar: retorna para lista ou navegação
+  // Voltar
   const handleBackPress = () => {
     if (showList) {
       navigation.goBack();
@@ -79,7 +78,7 @@ const DiarioScreen = ({ navigation, route }) => {
     }
   };
 
-  // Selecionar imagem da galeria
+  // Escolher imagem
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -88,7 +87,7 @@ const DiarioScreen = ({ navigation, route }) => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images, // Corrigido aqui!
+      mediaTypes: ImagePicker.MediaType.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
@@ -102,32 +101,24 @@ const DiarioScreen = ({ navigation, route }) => {
     }
   };
 
-  // Salvar uma nova anotação
+  // Salvar entrada
   const handleSaveEntry = async () => {
     if (newEntryText.trim() === '' || !selectedMood) {
       Alert.alert('Atenção', 'Por favor, escreva um texto e selecione seu humor.');
       return;
     }
 
-    const newEntry = {
-      userId: userId, // Agora o userId vem dos parâmetros de navegação
-      text: newEntryText,
-      mood: selectedMood.name,
-      image: newEntryImage,
-    };
-
     try {
       const response = await fetch(`${API_URL}/diary/save`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newEntry),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          mood: selectedMood.name,
+          entryText: newEntryText,
+          imageUrl: newEntryImage,
+        }),
       });
-
-      if (!response.ok) {
-        throw new Error(`Erro HTTP: ${response.status}`);
-      }
 
       const result = await response.json();
       Alert.alert('Sucesso!', 'Entrada salva com sucesso!');
@@ -135,25 +126,21 @@ const DiarioScreen = ({ navigation, route }) => {
       setNewEntryImage(null);
       setSelectedMood(null);
       setImageAddedMessage('');
-      setShowList(true); // Exibe a lista após salvar
+      setShowList(true);
     } catch (error) {
       console.error('Erro ao salvar entrada:', error);
       Alert.alert('Erro', 'Não foi possível salvar a entrada. Tente novamente.');
     }
   };
 
-
-  // Expandir ou recolher anotação
   const toggleExpand = (id) => {
     setExpandedEntryId(expandedEntryId === id ? null : id);
   };
 
-  // FORMULÁRIO DE NOVA ANOTAÇÃO
+  // Formulário de nova entrada
   const renderDiaryForm = () => (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient colors={['#d1e4ff', '#c4d8f2']} style={styles.background}>
-
-        {/* Cabeçalho do formulário */}
         <View style={styles.headerOld}>
           <TouchableOpacity onPress={handleBackPress} style={styles.backButtonOld}>
             <Image source={require('../assets/src/seta.png')} style={styles.backArrowOld} />
@@ -164,7 +151,6 @@ const DiarioScreen = ({ navigation, route }) => {
           </View>
         </View>
 
-        {/* Conteúdo do formulário */}
         <ScrollView contentContainerStyle={styles.formScrollContent}>
           <View style={styles.formContainer}>
             <Text style={styles.formTitle}>O que aconteceu hoje?</Text>
@@ -220,12 +206,10 @@ const DiarioScreen = ({ navigation, route }) => {
     </SafeAreaView>
   );
 
-  // LISTA DE ANOTAÇÕES
+  // Lista de entradas
   const renderDiaryList = () => (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient colors={['#d1e4ff', '#c4d8f2']} style={styles.background}>
-
-        {/* Cabeçalho da lista */}
         <View style={styles.headerList}>
           <TouchableOpacity onPress={handleBackPress} style={styles.backButtonList}>
             <Image source={require('../assets/src/seta.png')} style={styles.backArrowList} />
@@ -234,7 +218,6 @@ const DiarioScreen = ({ navigation, route }) => {
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Conteúdo da lista */}
         <View style={styles.mainContent}>
           <View style={styles.cardContainer}>
             <Text style={styles.listTitle}>Minhas Anotações</Text>
@@ -274,7 +257,6 @@ const DiarioScreen = ({ navigation, route }) => {
           </View>
         </View>
 
-        {/* Botão para adicionar nova anotação */}
         <TouchableOpacity style={styles.addButton} onPress={() => setShowList(false)}>
           <Ionicons name="add-circle" size={50} color="#0c4793" />
         </TouchableOpacity>
@@ -285,7 +267,6 @@ const DiarioScreen = ({ navigation, route }) => {
   return showList ? renderDiaryList() : renderDiaryForm();
 };
 
-// ESTILOS ORGANIZADOS E COMENTADOS
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

@@ -23,7 +23,7 @@ const LoginScreen = ({ navigation }) => {
   const [errors, setErrors] = useState({});
 
   // URL do seu servidor backend - IP local do seu computador
-  const API_URL = 'http://172.23.112.1:3000';
+  const API_URL = 'http://172.29.48.1:3000';
 
   const validateForm = () => {
     const newErrors = {};
