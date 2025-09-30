@@ -10,14 +10,17 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
+  Dimensions, // Importado para responsividade
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// Obtém a altura da tela para responsividade
+const { height } = Dimensions.get('window');
+
 // Adicione o seu IP aqui, o mesmo do arquivo server.js
-const API_URL = 'http://172.29.48.1:3000'; // Substitua pelo seu IP
+const API_URL = 'http://172.19.96.1:3000'; // Substitua pelo seu IP
 
 const ProfileScreen = ({ navigation, route }) => {
   const { userId } = route.params;
@@ -28,24 +31,21 @@ const ProfileScreen = ({ navigation, route }) => {
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
   const [userPhone, setUserPhone] = useState('');
-  const [profilePicture, setProfilePicture] = useState(null);
+  // REMOVIDO: o estado userEmoji
 
   // Função para buscar os dados do perfil do servidor
   const fetchProfileData = async () => {
     try {
       setLoading(true);
-      // MUDANÇA CRÍTICA: Rota correta para buscar dados do usuário
       const response = await fetch(`${API_URL}/user/${userId}`);
       if (!response.ok) {
         throw new Error('Falha ao carregar os dados do perfil.');
       }
       const data = await response.json();
 
-      // MUDANÇA CRÍTICA: Mapeamento dos campos do servidor para o estado local
       setUserName(data.username);
       setUserEmail(data.email);
-      setUserPhone(data.emergency_phone || ''); // Use o campo correto e trate valores nulos
-      setProfilePicture(require('../assets/src/user.png')); // A sua API não tem a rota para imagem, então mantemos a imagem padrão.
+      setUserPhone(data.emergency_phone || ''); 
 
     } catch (error) {
       console.error('Erro ao buscar dados do perfil:', error);
@@ -59,6 +59,8 @@ const ProfileScreen = ({ navigation, route }) => {
     fetchProfileData();
   }, [userId]);
 
+  // REMOVIDO: a função handleEditEmoji
+
   // Função para salvar alterações do perfil NO BANCO DE DADOS
   const handleSaveProfile = async () => {
     if (userEmail.trim() === '' || userName.trim() === '') {
@@ -66,21 +68,18 @@ const ProfileScreen = ({ navigation, route }) => {
       return;
     }
 
-    // MUDANÇA CRÍTICA: Mapeamento correto dos campos para enviar ao servidor
     const updatedProfile = {
       username: userName,
       email: userEmail,
-      password_hash: userPassword, // Use o nome de campo correto
+      password_hash: userPassword, 
       emergency_phone: userPhone,
     };
 
-    // Remove a senha do objeto se ela estiver vazia para não sobrescrever
     if (userPassword === '') {
       delete updatedProfile.password_hash;
     }
 
     try {
-      // MUDANÇA CRÍTICA: Rota correta para atualizar os dados do usuário
       const response = await fetch(`${API_URL}/user/update/${userId}`, {
         method: 'PUT',
         headers: {
@@ -95,35 +94,14 @@ const ProfileScreen = ({ navigation, route }) => {
       }
 
       Alert.alert('Sucesso!', 'Perfil atualizado com sucesso!');
-      // Atualiza os dados na tela após salvar
       fetchProfileData();
-      setUserPassword(''); // Limpa o campo de senha após o sucesso
+      setUserPassword(''); 
     } catch (error) {
       console.error('Erro ao salvar perfil:', error);
       Alert.alert('Erro', 'Não foi possível salvar as alterações. Tente novamente.');
     }
   };
 
-  // A função handleEditPhoto não precisa ser alterada, pois o problema não está nela.
-  const handleEditPhoto = async () => {
-    // ... código existente ...
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permissão necessária', 'Desculpe, precisamos de permissão para acessar sua galeria.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setProfilePicture({ uri: result.assets[0].uri });
-    }
-  };
 
   if (loading) {
     return (
@@ -134,7 +112,6 @@ const ProfileScreen = ({ navigation, route }) => {
     );
   }
 
-  // O componente de renderização não precisa de alterações visuais
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.gradientBackground}>
@@ -149,24 +126,24 @@ const ProfileScreen = ({ navigation, route }) => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Image source={require('../assets/src/seta.png')} style={styles.backArrow} />
+            {/* Certifique-se de que o caminho 'seta.png' está correto */}
+            <Image source={require('../assets/src/seta.png')} style={styles.backArrow} /> 
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>PERFIL</Text>
 
           <View style={styles.logoContainer}>
+            {/* Certifique-se de que o caminho 'logoimg.png' está correto */}
             <Image source={require('../assets/src/logoimg.png')} style={styles.logo} />
           </View>
         </View>
 
         <View style={styles.profileContent}>
-          <View style={styles.profilePictureContainer}>
-            <Image source={profilePicture} style={styles.profilePicture} />
-            <TouchableOpacity style={styles.editIcon} onPress={handleEditPhoto}>
-              <Ionicons name="create-outline" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-
+          
+          {/* NOVO: Nome do Usuário em Destaque */}
+          <Text style={styles.userNameDisplay}>{userName || 'Usuário Serene'}</Text>
+          
+          {/* Campos de Input */}
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>NOME:</Text>
             <TextInput
@@ -223,7 +200,6 @@ const ProfileScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  // ... estilos existentes ...
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
@@ -245,7 +221,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 50,
+    paddingBottom: height * 0.05, 
     alignItems: 'center',
   },
   header: {
@@ -253,24 +229,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    paddingTop: 20,
+    paddingTop: height * 0.02, 
     paddingHorizontal: 30,
-    paddingBottom: 20,
+    paddingBottom: height * 0.02, 
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: height * 0.05, 
+    height: height * 0.05, 
     justifyContent: 'center',
     alignItems: 'center',
   },
   backArrow: {
-    width: 50,
-    height: 50,
+    width: '100%',
+    height: '100%',
     resizeMode: 'contain',
     tintColor: '#fff',
   },
   headerTitle: {
-    fontSize: 30,
+    fontSize: height * 0.035, 
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
@@ -278,8 +254,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Bree-Serif',
   },
   logoContainer: {
-    width: 50,
-    height: 50,
+    width: height * 0.05,
+    height: height * 0.05,
   },
   logo: {
     width: '100%',
@@ -290,36 +266,27 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: 'rgba(255,255,255,0.6)',
     borderRadius: 20,
-    padding: 25,
+    padding: height * 0.03, 
     alignItems: 'center',
   },
-  profilePictureContainer: {
-    position: 'relative',
-    marginBottom: 20,
+  // NOVO ESTILO: Nome em Destaque
+  userNameDisplay: {
+    fontSize: height * 0.035, // Tamanho grande para o nome
+    fontWeight: 'bold',
+    color: '#4c5e87',
+    marginBottom: height * 0.02, // Espaço antes do primeiro input
+    textAlign: 'center',
+    fontFamily: 'Bree-Serif',
+    textTransform: 'capitalize', // Deixa a primeira letra maiúscula
   },
-  profilePicture: {
-    width: 100,
-    height: 100,
-    borderRadius: 75,
-    borderWidth: 3,
-    borderColor: '#226dce',
-    backgroundColor: '#226dce',
-    marginBottom: 5,
-  },
-  editIcon: {
-    position: 'absolute',
-    bottom: 5,
-    right: 5,
-    backgroundColor: '#3498db',
-    borderRadius: 15,
-    padding: 5,
-  },
+  // REMOVIDOS estilos profilePictureContainer, profileEmoji, editIcon
+
   inputContainer: {
     width: '100%',
-    marginBottom: 10,
+    marginBottom: height * 0.015, 
   },
   inputLabel: {
-    fontSize: 12,
+    fontSize: height * 0.018, 
     color: '#4c5e87',
     marginBottom: 5,
     fontFamily: 'Bree-Serif',
@@ -327,24 +294,24 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: '#b6bbce',
-    padding: 15,
+    padding: height * 0.02, 
     borderRadius: 10,
-    fontSize: 16,
+    fontSize: height * 0.022, 
     color: '#333',
     textAlign: 'center',
     fontFamily: 'Bree-Serif',
   },
   saveButton: {
     backgroundColor: '#8ca9d2',
-    padding: 15,
+    padding: height * 0.02, 
     borderRadius: 10,
-    marginTop: 20,
+    marginTop: height * 0.025, 
     width: '100%',
     alignItems: 'center',
   },
   saveButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: height * 0.025, 
     fontWeight: 'bold',
     fontFamily: 'Bree-Serif',
   },

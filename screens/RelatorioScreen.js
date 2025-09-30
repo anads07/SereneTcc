@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions, ScrollView, ImageBackground, Alert } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from 'expo-linear-gradient'; 
 
 const screenWidth = Dimensions.get('window').width;
-const API_URL = 'http://172.29.48.1:3000'; // Substitua pelo seu IP
+const API_URL = 'http://172.19.96.1:3000'; // Substitua pelo seu IP
 
 // Frases motivacionais para o post-it
 const frases = [
@@ -38,6 +38,27 @@ const RelatorioScreen = ({ navigation, route }) => {
   const { userId } = route.params;
   const [frase, setFrase] = useState('');
   const [humorData, setHumorData] = useState([]);
+  
+  // NOVO ESTADO: Controla se o registro de humor já foi feito hoje
+  const [hasRegisteredToday, setHasRegisteredToday] = useState(false);
+
+  // NOVO: Função para verificar se o humor já foi registrado hoje
+  const checkDailyRegistration = async () => {
+    try {
+      // Chama a rota no backend que checa o registro diário por userId
+      const response = await fetch(`${API_URL}/mood/hasRegisteredToday/${userId}`);
+      if (!response.ok) {
+        return;
+      }
+      const data = await response.json();
+      // O backend retorna { registered: true/false }
+      if (data.registered) {
+          setHasRegisteredToday(true); 
+      }
+    } catch (error) {
+      console.error('Erro ao verificar registro diário:', error);
+    }
+  };
 
   // Função para buscar os dados de humor do servidor
   const fetchHumorData = async () => {
@@ -73,10 +94,19 @@ const RelatorioScreen = ({ navigation, route }) => {
 
     // Busca os dados do servidor
     fetchHumorData();
+    
+    // Checa o registro diário
+    checkDailyRegistration(); 
   }, []);
 
-  // Função para registrar o humor no servidor
+  // Função para registrar o humor no servidor (Lógica de limite diário melhorada)
   const registrarHumor = async (moodType) => {
+    // 1. Verificação de UX (evita chamada desnecessária)
+    if (hasRegisteredToday) {
+      Alert.alert('Atenção', 'Você já registrou seu humor hoje. Volte amanhã!');
+      return;
+    }
+
     try {
       const response = await fetch(`${API_URL}/mood/save`, {
         method: 'POST',
@@ -87,11 +117,22 @@ const RelatorioScreen = ({ navigation, route }) => {
       });
 
       if (!response.ok) {
-        throw new Error('Falha ao salvar o humor.');
+        // Se o backend retornar 409 Conflict, é porque já registrou
+        if (response.status === 409) {
+            const errorData = await response.json();
+            Alert.alert('Atenção', errorData.message || 'Você já registrou seu humor hoje.');
+            setHasRegisteredToday(true); // Desabilita mesmo que o backend já tenha feito o check
+            return;
+        }
+
+        // Para outros erros
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Falha ao salvar o humor.');
       }
 
-      // Após salvar, busca os dados atualizados
+      // Após salvar, atualiza o estado e os dados
       Alert.alert('Sucesso!', 'Seu humor foi registrado com sucesso!');
+      setHasRegisteredToday(true); // Desabilita os botões após o sucesso
       fetchHumorData();
 
     } catch (error) {
@@ -129,24 +170,51 @@ const RelatorioScreen = ({ navigation, route }) => {
             </View>
           </View>
 
-          {/* EMOÇÕES */}
+          {/* EMOÇÕES (BOTÕES DESABILITADOS SE JÁ REGISTROU) */}
           <View style={styles.emotionsContainer}>
-            <TouchableOpacity onPress={() => registrarHumor('estressado')} style={styles.emojiButton}>
+            <TouchableOpacity 
+              onPress={() => registrarHumor('estressado')} 
+              style={[styles.emojiButton, hasRegisteredToday && styles.disabledButton]}
+              disabled={hasRegisteredToday}
+            >
               <Image source={require('../assets/src/raiva.png')} style={styles.emoji} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => registrarHumor('magoado')} style={styles.emojiButton}>
+            <TouchableOpacity 
+              onPress={() => registrarHumor('magoado')} 
+              style={[styles.emojiButton, hasRegisteredToday && styles.disabledButton]}
+              disabled={hasRegisteredToday}
+            >
               <Image source={require('../assets/src/triste.png')} style={styles.emoji} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => registrarHumor('pensativo')} style={styles.emojiButton}>
+            <TouchableOpacity 
+              onPress={() => registrarHumor('pensativo')} 
+              style={[styles.emojiButton, hasRegisteredToday && styles.disabledButton]}
+              disabled={hasRegisteredToday}
+            >
               <Image source={require('../assets/src/media.png')} style={styles.emoji} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => registrarHumor('bem')} style={styles.emojiButton}>
+            <TouchableOpacity 
+              onPress={() => registrarHumor('bem')} 
+              style={[styles.emojiButton, hasRegisteredToday && styles.disabledButton]}
+              disabled={hasRegisteredToday}
+            >
               <Image source={require('../assets/src/feliz.png')} style={styles.emoji} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => registrarHumor('otimo')} style={styles.emojiButton}>
+            <TouchableOpacity 
+              onPress={() => registrarHumor('otimo')} 
+              style={[styles.emojiButton, hasRegisteredToday && styles.disabledButton]}
+              disabled={hasRegisteredToday}
+            >
               <Image source={require('../assets/src/muitofeliz.png')} style={styles.emoji} />
             </TouchableOpacity>
           </View>
+          
+          {/* MENSAGEM DE AVISO CONDIOCIONAL */}
+          {hasRegisteredToday && (
+            <Text style={styles.dailyLimitMessage}>
+              Seu humor já foi registrado hoje. Volte amanhã!
+            </Text>
+          )}
 
           {/* Barra de separação */}
           <Image source={require('../assets/src/barra.png')} style={styles.barra} />
@@ -256,7 +324,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 20,
-    marginBottom: -5,
+    marginBottom: 5, 
   },
   emojiButton: {
     padding: 10,
@@ -265,6 +333,18 @@ const styles = StyleSheet.create({
   emoji: {
     width: 40,
     height: 40,
+  },
+  // ESTILO NOVO: Botão desabilitado
+  disabledButton: {
+    opacity: 0.4,
+  },
+  // ESTILO NOVO: Mensagem de limite diário
+  dailyLimitMessage: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#e52b17', // Cor de alerta
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   barra: {
     width: '80%',

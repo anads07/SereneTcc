@@ -7,7 +7,7 @@ import {
   Image,
   TextInput,
   Alert,
-  ScrollView,
+  ScrollView, // Importado
   SafeAreaView,
   Dimensions
 } from 'react-native';
@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { width } = Dimensions.get('window');
 
 // URL do seu servidor backend
-const API_URL = 'http://172.29.48.1:3000';
+const API_URL = 'http://172.19.96.1:3000';
 
 // Emoções disponíveis
 const moods = [
@@ -239,12 +239,20 @@ const DiarioScreen = ({ navigation, route }) => {
                     </View>
 
                     {expandedEntryId === entry.id && (
-                      <View style={styles.entryDetails}>
-                        <Text style={styles.entryText}>{entry.text}</Text>
-                        {entry.image && (
-                          <Image source={{ uri: entry.image }} style={styles.entryImage} />
-                        )}
-                      </View>
+                      // AQUI: Adicionado ScrollView para o conteúdo expandido
+                      <ScrollView 
+                        style={styles.entryDetailsScroll} 
+                        showsVerticalScrollIndicator={true}
+                        // Define uma altura máxima para o scroll funcionar
+                        contentContainerStyle={{ paddingBottom: 10 }}
+                      >
+                        <View style={styles.entryDetails}>
+                          <Text style={styles.entryText}>{entry.text}</Text>
+                          {entry.image && (
+                            <Image source={{ uri: entry.image }} style={styles.entryImage} />
+                          )}
+                        </View>
+                      </ScrollView>
                     )}
                   </TouchableOpacity>
                 ))
@@ -304,7 +312,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Cabeçalho formulário
+  // Cabeçalho formulário (Mantido do código original)
   headerOld: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -407,24 +415,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  entryDetails: {
+  // NOVO ESTILO: Container de Scroll para o conteúdo expandido
+  entryDetailsScroll: {
     marginTop: 10,
     borderTopWidth: 1,
     borderTopColor: 'rgba(12, 71, 147, 0.1)',
+    // Defina uma altura máxima para o ScrollView aqui, para que ele só role quando o conteúdo exceder esse limite
+    maxHeight: 250, 
+  },
+  entryDetails: {
     paddingTop: 10,
-    maxHeight: 200,
-    overflow: 'hidden',
+    // Removido maxHeight: 200 e overflow: 'hidden' daqui
   },
   entryText: {
     fontSize: 16,
     color: '#333',
     lineHeight: 22,
+    marginBottom: 10, // Adicionado para dar espaço antes da imagem
   },
   entryImage: {
     width: '100%',
     height: 200,
     borderRadius: 10,
-    marginTop: 15,
+    marginTop: 5, 
     resizeMode: 'cover',
   },
   noEntriesText: {
@@ -447,7 +460,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
-  // Conteúdo do formulário
+  // Conteúdo do formulário (Mantido do código original)
   formScrollContent: {
     flexGrow: 1,
     justifyContent: 'center',

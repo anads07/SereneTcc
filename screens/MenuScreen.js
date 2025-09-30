@@ -1,52 +1,110 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, SafeAreaView, Dimensions, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// Obtém a altura da tela para responsividade
+const { height } = Dimensions.get('window');
+
 // imagem do menu principal
-const menuImage = require('../assets/src/circulomenu.png');
+const menuImage = require('../assets/src/circulomenu.png'); 
+
+// Função auxiliar para aplicar estilos de borda condicionalmente
+const getButtonBorderStyles = (index, total) => {
+    const radius = 15; 
+    const styles = {};
+
+    // Adiciona a linha de separação entre os botões
+    if (index < total - 1) {
+        styles.borderBottomWidth = 1;
+        styles.borderBottomColor = '#c1d4f2'; 
+    }
+
+    // Último botão ("ChatBot")
+    if (index === total - 1) {
+        styles.borderBottomLeftRadius = radius;
+        styles.borderBottomRightRadius = radius;
+    }
+    
+    return styles;
+};
 
 const MenuScreen = ({ navigation, route }) => {
   // Pega o userId passado da tela de login
   const { userId } = route.params || {};
 
-  // itens do menu com cores e telas correspondentes
+  // ITENS: Ordem de CIMA PARA BAIXO (Acesse Perfil -> ChatBot)
   const menuItems = [
-    { text: 'Acesse seu perfil', color: '#afcdf2', screen: 'Profile' },
+    { text: 'Acesse seu perfil', color: '#afcdf2', screen: 'Profile' },    
     { text: 'Diário emocional', color: '#96bef0', screen: 'Diario' },
     { text: 'Atividades recomendadas', color: '#7bb0ea', screen: 'Recomendacao' },
-    { text: 'Relatório semanal', color: '#64a1e6', screen: 'Relatorio' },
-    { text: 'Converse com o ChatBot', color: '#5691de', screen: 'Chat' },
+    { text: 'Relatório emocional', color: '#64a1e6', screen: 'Relatorio' }, 
+    { text: 'ChatBot', color: '#5691de', screen: 'Chat' },                 
   ];
+
+  const handlePress = (screenName) => {
+    navigation.navigate(screenName, { userId });
+  };
+
+  // Tamanho da imagem
+  const imageSize = height * 0.22; 
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={{ flex: 1 }}>
-        {/* fundo com gradiente */}
-        <LinearGradient
-          colors={['#a1bce2', '#fff']}
-          style={StyleSheet.absoluteFill} // ocupa toda a tela
-        />
+      
+      {/* Fundo com Degradê */}
+      <LinearGradient
+          colors={['#a4c4ff', '#fefeff']} 
+          style={StyleSheet.absoluteFill} 
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+      />
+      
+      {/* ScrollView: Permite a rolagem */}
+      <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          style={styles.scrollView}
+      >
+          
+          {/* Container principal que ocupa a largura total */}
+          <View style={styles.contentContainer}>
+              
+              {/* Bloco de Conteúdo (Header e Botões) */}
+              <View style={styles.buttonBlock}>
+                  
+                  {/* Título e Imagem - Centralizados no topo com padding reduzido */}
+                  <View style={styles.headerContent}>
+                      <Text style={styles.title}>SEJA BEM VINDO AO SERENE</Text>
+                      <Image 
+                          source={menuImage} 
+                          style={[styles.menuImage, { width: imageSize, height: imageSize }]} 
+                      />
+                  </View>
 
-        {/* conteúdo do menu */}
-        <View style={styles.container}>
-          <Text style={styles.title}>BEM VINDO AO SERENE</Text>
-          <Image source={menuImage} style={styles.menuImage} />
-          <View style={styles.buttonContainer}>
-            {menuItems.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[styles.balloonContainer, { backgroundColor: item.color }]}
-                // Passa o userId para a tela do diário, se estiver disponível
-                onPress={() => navigation.navigate(item.screen, { userId: userId })}
-              >
-                <View style={styles.balloon}>
-                  <Text style={styles.buttonText}>{item.text}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+                  {/* Bloco dos botões */}
+                  <View style={styles.buttonsWrapper}>
+                      {menuItems.map((item, index) => {
+                          const total = menuItems.length;
+
+                          return (
+                              <TouchableOpacity
+                                  key={index}
+                                  style={[
+                                      styles.buttonWrapper,
+                                      { backgroundColor: item.color }, // Cor sólida do botão
+                                      getButtonBorderStyles(index, total)
+                                  ]}
+                                  onPress={() => handlePress(item.screen)}
+                              >
+                                  <View style={styles.buttonContent}>
+                                      <Text style={styles.buttonText}>{item.text}</Text>
+                                  </View>
+                              </TouchableOpacity>
+                          );
+                      })}
+                  </View>
+              </View>
           </View>
-        </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -54,62 +112,68 @@ const MenuScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent', 
   },
-  container: {
+  scrollView: {
     flex: 1,
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 40,
+  },
+  scrollContent: {
+    flexGrow: 1, 
+    justifyContent: 'flex-end', 
+  },
+  contentContainer: {
+      width: '100%', 
+      maxWidth: 500, 
+      alignSelf: 'center', 
+      overflow: 'hidden', 
+  },
+  buttonBlock: {
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+      backgroundColor: 'transparent', 
+  },
+  headerContent: {
+      // REDUZIDO de 0.08 para 0.06 (6% da altura) para subir o conteúdo
+      paddingTop: height * 0.06, 
+      paddingBottom: height * 0.06, 
+      alignItems: 'center',
+      justifyContent: 'center',
   },
   title: {
-    fontSize: 33,
+    fontSize: height * 0.045, 
     fontWeight: 'bold',
-    fontFamily: 'Bree-Serif',
+    fontFamily: 'Bree-Serif', 
     color: '#fff',
     textTransform: 'uppercase',
     textAlign: 'center',
-    marginBottom: 10,
-    textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textShadowOffset: {
-      width: 1,
-      height: 1,
-    },
-    textShadowRadius: 20,
+    marginBottom: 20, 
     marginHorizontal: 20,
   },
   menuImage: {
-    width: 200,
-    height: 200,
+    width: height * 0.22, // Mantido
+    height: height * 0.22, // Mantido
     resizeMode: 'contain',
-    marginBottom: 15,
   },
-  buttonContainer: {
-    width: '100%',
+  buttonsWrapper: {
+      borderTopLeftRadius: 15, 
+      borderTopRightRadius: 15,
+      overflow: 'hidden', 
+  },
+  buttonWrapper: {
+      width: '100%',
+      marginVertical: 0, 
+      overflow: 'hidden', 
+  },
+  buttonContent: {
+    paddingVertical: 25, 
     paddingHorizontal: 20,
-    alignItems: 'center',
-  },
-  balloonContainer: {
     width: '100%',
-    borderRadius: 25,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    marginBottom: 15,
-  },
-  balloon: {
-    paddingVertical: 20,
-    paddingHorizontal: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
   },
