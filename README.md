@@ -55,27 +55,31 @@ cd AereneTcc
 Execute os seguintes comandos no terminal:
 
 ```bash
-# Instalar pacotes principais
-npm install
-
 # React Navigation
-expo install @react-navigation/native
-expo install @react-navigation/stack
-
-# Estilização e ícones
-expo install expo-linear-gradient
-expo install @expo/vector-icons
-expo install expo-font
-
-# Manipulação de imagens
-expo install expo-image-picker
+npm install @react-navigation/native
+npm install @react-navigation/stack
 
 # Dependências obrigatórias do React Navigation
-expo install react-native-gesture-handler
-expo install react-native-reanimated
-expo install react-native-screens
-expo install react-native-safe-area-context
-expo install @react-native-community/masked-view
+npm install react-native-gesture-handler
+npm install react-native-reanimated
+npm install react-native-screens
+npm install react-native-safe-area-context
+npm install @react-native-community/masked-view
+
+# Estilização e ícones
+npm install expo-linear-gradient
+npm install @expo/vector-icons
+npm install expo-font
+
+# Manipulação de imagens
+npm install expo-image-picker
+
+# Gráficos
+npm install react-native-chart-kit
+
+# Suporte web
+npm install react-dom react-native-web @expo/metro-runtime
+
 ```
 
 ---
