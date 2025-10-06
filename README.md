@@ -27,13 +27,20 @@ Jovens e adolescentes que buscam ferramentas digitais acessíveis para lidar com
 
 ---
 
-## 🛠️ Tecnologias Utilizadas  
-- **React Native (Expo)**  
-- **React Navigation** – gerenciamento de telas  
-- **Expo Linear Gradient** – efeitos de gradiente  
-- **Expo Image Picker** – seleção de imagens  
-- **Expo Fonts** – fontes personalizadas  
-- **@expo/vector-icons** – biblioteca de ícones  
+## 🛠️ Tecnologias Utilizadas
+- **React Native (Expo)**
+- **React Navigation** – gerenciamento de telas e navegação
+- **React Native Gesture Handler** – suporte a gestos e toques
+- **React Native Reanimated** – animações fluidas
+- **React Native Screens** – otimização de telas
+- **React Native Safe Area Context** – suporte às áreas seguras da interface
+- **@react-native-community/masked-view** – mascaramento de elementos
+- **Expo Linear Gradient** – efeitos de gradiente
+- **Expo Image Picker** – seleção de imagens
+- **Expo Fonts** – fontes personalizadas
+- **@expo/vector-icons** – biblioteca de ícones
+- **React Native Chart Kit** – criação de gráficos e visualizações
+- **React DOM / React Native Web / @expo/metro-runtime** – suporte para execução no navegador
 
 ---
 
