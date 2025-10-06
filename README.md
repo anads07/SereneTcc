@@ -54,7 +54,7 @@ Jovens e adolescentes que buscam ferramentas digitais acessíveis para lidar com
 ### 2️⃣ Clonando o repositório  
 ```bash
 git clone https://github.com/anads07/SereneTcc.git
-cd AereneTcc
+cd SereneTcc
 ```
 
 ### 3️⃣ Instalação das Dependências
