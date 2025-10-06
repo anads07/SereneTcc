@@ -27,7 +27,7 @@ const RegisterScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const API_URL = 'http://172.19.96.1:3000'; 
+  const API_URL = 'http://172.17.16.1:3000'; 
 
   // validação simples do formulário
   const validateForm = () => {

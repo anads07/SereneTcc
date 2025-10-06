@@ -25,7 +25,7 @@ const LoginScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   // ⚠️ Confirme que este IP é o mesmo do seu server.js
-  const API_URL = 'http://172.19.96.1:3000'; 
+  const API_URL = 'http://172.17.16.1:3000'; 
 
   const validateForm = () => {
     const newErrors = {};

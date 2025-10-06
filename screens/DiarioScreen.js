@@ -7,9 +7,10 @@ import {
   Image,
   TextInput,
   Alert,
-  ScrollView, // Importado
+  ScrollView,
   SafeAreaView,
-  Dimensions
+  Dimensions,
+  Platform 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,7 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { width } = Dimensions.get('window');
 
 // URL do seu servidor backend
-const API_URL = 'http://172.19.96.1:3000';
+const API_URL = 'http://172.17.16.1:3000'; 
 
 // Emoções disponíveis
 const moods = [
@@ -30,7 +31,7 @@ const moods = [
 ];
 
 const DiarioScreen = ({ navigation, route }) => {
-  const { userId } = route.params;
+  const userId = route.params?.userId || 1; 
 
   const [entries, setEntries] = useState([]);
   const [showList, setShowList] = useState(true);
@@ -40,19 +41,28 @@ const DiarioScreen = ({ navigation, route }) => {
   const [expandedEntryId, setExpandedEntryId] = useState(null);
   const [imageAddedMessage, setImageAddedMessage] = useState('');
 
+  // Verificar se está no ambiente web
+  const isWeb = Platform.OS === 'web';
+
   // Buscar entradas do diário
   useEffect(() => {
     const fetchEntries = async () => {
       try {
+        console.log('Buscando entradas para usuário:', userId);
         const response = await fetch(`${API_URL}/diary/getEntries/${userId}`);
+        
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erro na resposta:', response.status, errorText);
           throw new Error(`Erro HTTP: ${response.status}`);
         }
+        
         const fetchedEntries = await response.json();
+        console.log('Entradas recebidas:', fetchedEntries);
 
         const formattedEntries = fetchedEntries.map(entry => ({
           id: entry.id,
-          date: new Date(entry.created_at).toLocaleDateString('pt-BR'),
+          date: new Date(entry.created_at).toLocaleDateString('pt-BR'), 
           text: entry.entry_text,
           mood: moods.find(m => m.name === entry.mood),
           image: entry.image_url,
@@ -61,6 +71,7 @@ const DiarioScreen = ({ navigation, route }) => {
         setEntries(formattedEntries);
       } catch (error) {
         console.error('Erro ao buscar entradas:', error);
+        Alert.alert('Erro', 'Não foi possível carregar as anotações. Verifique a conexão com o servidor.');
       }
     };
 
@@ -69,7 +80,6 @@ const DiarioScreen = ({ navigation, route }) => {
     }
   }, [userId, showList]);
 
-  // Voltar
   const handleBackPress = () => {
     if (showList) {
       navigation.goBack();
@@ -78,58 +88,275 @@ const DiarioScreen = ({ navigation, route }) => {
     }
   };
 
-  // Escolher imagem
+  // Escolher imagem - VERSÃO WEB COMPATÍVEL
   const handlePickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permissão necessária', 'Precisamos de permissão para acessar sua galeria.');
-      return;
-    }
+    try {
+      console.log('Abrindo seletor de imagem...');
+      console.log('Plataforma:', Platform.OS);
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+      // No web, usar input file nativo
+      if (isWeb) {
+        return new Promise((resolve) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          
+          input.onchange = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              
+              reader.onload = (e) => {
+                const base64 = e.target.result;
+                console.log('📸 Imagem selecionada (web):', {
+                  fileName: file.name,
+                  fileSize: file.size,
+                  type: file.type
+                });
+                
+                setNewEntryImage(base64);
+                setImageAddedMessage('Foto adicionada! Pronto para salvar.');
+              };
+              
+              reader.readAsDataURL(file);
+            }
+          };
+          
+          input.click();
+        });
+      }
 
-    if (!result.canceled) {
-      setNewEntryImage(result.assets[0].uri);
-      setImageAddedMessage('Foto adicionada!');
-    } else {
-      setImageAddedMessage('');
+      // Para mobile
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert('Permissão necessária', 'Precisamos de acesso à sua galeria para adicionar imagens.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+        base64: true,
+      });
+
+      console.log('Resultado do ImagePicker:', result);
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        const imageUri = selectedImage.base64 ? `data:image/jpeg;base64,${selectedImage.base64}` : selectedImage.uri;
+        
+        setNewEntryImage(imageUri);
+        setImageAddedMessage('Foto adicionada! Pronto para salvar.');
+        
+      } else {
+        console.log('Seleção de imagem cancelada pelo usuário');
+        setImageAddedMessage('');
+      }
+    } catch (error) {
+      console.error('Erro ao selecionar imagem:', error);
+      Alert.alert('Erro', 'Não foi possível acessar a galeria. Tente novamente.');
     }
   };
 
-  // Salvar entrada
+  // Upload de imagem - VERSÃO WEB (usando base64)
+  const uploadImageWeb = async (base64Data) => {
+    try {
+      console.log('📤 Enviando imagem (web)...');
+      
+      // Extrair apenas a parte base64
+      const base64Content = base64Data.split(',')[1];
+      const mimeType = base64Data.split(';')[0].split(':')[1];
+      
+      const response = await fetch(`${API_URL}/diary/uploadImage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageData: base64Content,
+          isBase64: true,
+          mimeType: mimeType,
+          filename: `diary_${userId}_${Date.now()}.${mimeType.split('/')[1] || 'jpg'}`
+        }),
+      });
+
+      console.log('📨 Status do upload (web):', response.status);
+      
+      const result = await response.json();
+      console.log('📄 Resultado do upload (web):', result);
+
+      if (!response.ok) {
+        throw new Error(result.message || `Upload falhou com status: ${response.status}`);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('❌ Erro no upload (web):', error);
+      throw error;
+    }
+  };
+
+  // Upload de imagem - VERSÃO MOBILE (usando FormData)
+  const uploadImageMobile = async (imageUri) => {
+    try {
+      console.log('📤 Enviando imagem (mobile)...');
+      
+      const formData = new FormData();
+      formData.append('image', {
+        uri: imageUri,
+        type: 'image/jpeg',
+        name: `diary_${userId}_${Date.now()}.jpg`,
+      });
+
+      const response = await fetch(`${API_URL}/diary/uploadImage`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      console.log('📨 Status do upload (mobile):', response.status);
+      
+      const result = await response.json();
+      console.log('📄 Resultado do upload (mobile):', result);
+
+      if (!response.ok) {
+        throw new Error(result.message || `Upload falhou com status: ${response.status}`);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('❌ Erro no upload (mobile):', error);
+      throw error;
+    }
+  };
+
+  // Salvar entrada - VERSÃO COMPATÍVEL COM WEB E MOBILE
   const handleSaveEntry = async () => {
+    console.log('Iniciando salvamento da entrada...');
+    console.log('Plataforma:', Platform.OS);
+    console.log('Texto:', newEntryText);
+    console.log('Humor:', selectedMood);
+    console.log('Imagem disponível:', !!newEntryImage);
+
     if (newEntryText.trim() === '' || !selectedMood) {
       Alert.alert('Atenção', 'Por favor, escreva um texto e selecione seu humor.');
       return;
     }
 
+    let finalImageUrl = null;
+    
+    // Upload da imagem se existir
+    if (newEntryImage) {
+      console.log('🖼️ Iniciando upload da imagem...');
+      
+      try {
+        let uploadResult;
+
+        if (isWeb) {
+          // No web, usar base64
+          uploadResult = await uploadImageWeb(newEntryImage);
+        } else {
+          // No mobile, usar FormData
+          uploadResult = await uploadImageMobile(newEntryImage);
+        }
+
+        if (uploadResult.success && uploadResult.imageUrl) {
+          finalImageUrl = uploadResult.imageUrl;
+          console.log('✅ Upload bem-sucedido! URL:', finalImageUrl);
+        } else {
+          throw new Error(uploadResult.message || 'URL da imagem não retornada');
+        }
+
+      } catch (error) {
+        console.error('❌ Erro no upload:', error);
+        Alert.alert(
+          'Aviso', 
+          `Não foi possível enviar a imagem: ${error.message}. A entrada será salva sem imagem.`
+        );
+      }
+    } else {
+      console.log('📭 Nenhuma imagem para upload');
+    }
+
+    // Salvar dados do diário
     try {
+      console.log('💾 Salvando entrada no diário...');
+      const saveData = {
+        userId: parseInt(userId),
+        mood: selectedMood.name,
+        entryText: newEntryText,
+        imageUrl: finalImageUrl,
+      };
+
+      console.log('📦 Dados para salvar:', saveData);
+
       const response = await fetch(`${API_URL}/diary/save`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          mood: selectedMood.name,
-          entryText: newEntryText,
-          imageUrl: newEntryImage,
-        }),
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(saveData),
       });
 
+      console.log('📊 Status do salvamento:', response.status);
+      
       const result = await response.json();
+      console.log('📝 Resultado do salvamento:', result);
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'Erro ao salvar anotação.');
+      }
+
       Alert.alert('Sucesso!', 'Entrada salva com sucesso!');
+      
+      // Resetar o formulário
       setNewEntryText('');
       setNewEntryImage(null);
       setSelectedMood(null);
       setImageAddedMessage('');
       setShowList(true);
+      
     } catch (error) {
-      console.error('Erro ao salvar entrada:', error);
-      Alert.alert('Erro', 'Não foi possível salvar a entrada. Tente novamente.');
+      console.error('💥 Erro ao salvar entrada:', error);
+      Alert.alert(
+        'Erro', 
+        error.message || 'Não foi possível salvar a entrada. Verifique a conexão com o servidor.'
+      );
+    }
+  };
+
+  // Função de teste para debug
+  const testImageUpload = async () => {
+    if (!newEntryImage) {
+      Alert.alert('Teste', 'Selecione uma imagem primeiro');
+      return;
+    }
+
+    console.log('=== 🧪 TESTE DE UPLOAD ===');
+    console.log('Plataforma:', Platform.OS);
+    
+    try {
+      let result;
+      
+      if (isWeb) {
+        result = await uploadImageWeb(newEntryImage);
+      } else {
+        result = await uploadImageMobile(newEntryImage);
+      }
+
+      console.log('Resultado completo:', result);
+
+      if (result.success) {
+        Alert.alert('✅ Teste OK', `Upload funcionou! URL: ${result.imageUrl}`);
+      } else {
+        Alert.alert('❌ Teste Falhou', result.message);
+      }
+
+    } catch (error) {
+      console.error('Erro no teste:', error);
+      Alert.alert('💥 Teste Erro', error.message);
     }
   };
 
@@ -181,7 +408,10 @@ const DiarioScreen = ({ navigation, route }) => {
                     size={28}
                     color={selectedMood?.name === mood.name ? '#fff' : mood.color}
                   />
-                  <Text style={[styles.moodText, selectedMood?.name === mood.name && { color: '#fff' }]}>
+                  <Text style={[
+                    styles.moodText, 
+                    selectedMood?.name === mood.name && { color: '#fff' }
+                  ]}>
                     {mood.name}
                   </Text>
                 </TouchableOpacity>
@@ -193,8 +423,20 @@ const DiarioScreen = ({ navigation, route }) => {
               <Text style={styles.imagePickerText}>Adicionar Imagem</Text>
             </TouchableOpacity>
 
+            
+
             {imageAddedMessage !== '' && (
               <Text style={styles.imageAddedMessage}>{imageAddedMessage}</Text>
+            )}
+
+            {newEntryImage && (
+              <View style={styles.imagePreviewContainer}>
+                <Text style={styles.previewLabel}>Pré-visualização:</Text>
+                <Image source={{ uri: newEntryImage }} style={styles.previewImage} />
+                <Text style={styles.imageInfo}>
+                  {isWeb ? 'Modo Web - Base64' : 'Modo Mobile'} - Imagem carregada!
+                </Text>
+              </View>
             )}
 
             <TouchableOpacity style={styles.saveButton} onPress={handleSaveEntry}>
@@ -221,7 +463,10 @@ const DiarioScreen = ({ navigation, route }) => {
         <View style={styles.mainContent}>
           <View style={styles.cardContainer}>
             <Text style={styles.listTitle}>Minhas Anotações</Text>
-            <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={true}>
+            <ScrollView 
+              contentContainerStyle={styles.listContent} 
+              showsVerticalScrollIndicator={true}
+            >
               {entries.length > 0 ? (
                 entries.map((entry) => (
                   <TouchableOpacity
@@ -239,11 +484,9 @@ const DiarioScreen = ({ navigation, route }) => {
                     </View>
 
                     {expandedEntryId === entry.id && (
-                      // AQUI: Adicionado ScrollView para o conteúdo expandido
                       <ScrollView 
                         style={styles.entryDetailsScroll} 
                         showsVerticalScrollIndicator={true}
-                        // Define uma altura máxima para o scroll funcionar
                         contentContainerStyle={{ paddingBottom: 10 }}
                       >
                         <View style={styles.entryDetails}>
@@ -258,14 +501,18 @@ const DiarioScreen = ({ navigation, route }) => {
                 ))
               ) : (
                 <Text style={styles.noEntriesText}>
-                  Nenhuma anotação salva. {"\n"} Clique no botão abaixo para adicionar!
+                  Nenhuma anotação salva.{"\n"} 
+                  Clique no botão abaixo para adicionar!
                 </Text>
               )}
             </ScrollView>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.addButton} onPress={() => setShowList(false)}>
+        <TouchableOpacity 
+          style={styles.addButton} 
+          onPress={() => setShowList(false)}
+        >
           <Ionicons name="add-circle" size={50} color="#0c4793" />
         </TouchableOpacity>
       </LinearGradient>
@@ -282,8 +529,6 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
-
-  // Cabeçalho lista
   headerList: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -311,8 +556,6 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
   },
-
-  // Cabeçalho formulário (Mantido do código original)
   headerOld: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -354,8 +597,6 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     tintColor: '#fff',
   },
-
-  // Conteúdo da lista
   mainContent: {
     flex: 1,
     paddingTop: 20,
@@ -415,29 +656,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // NOVO ESTILO: Container de Scroll para o conteúdo expandido
   entryDetailsScroll: {
     marginTop: 10,
     borderTopWidth: 1,
     borderTopColor: 'rgba(12, 71, 147, 0.1)',
-    // Defina uma altura máxima para o ScrollView aqui, para que ele só role quando o conteúdo exceder esse limite
-    maxHeight: 250, 
+    maxHeight: 250,
   },
   entryDetails: {
     paddingTop: 10,
-    // Removido maxHeight: 200 e overflow: 'hidden' daqui
   },
   entryText: {
     fontSize: 16,
     color: '#333',
     lineHeight: 22,
-    marginBottom: 10, // Adicionado para dar espaço antes da imagem
+    marginBottom: 10,
   },
   entryImage: {
     width: '100%',
     height: 200,
     borderRadius: 10,
-    marginTop: 5, 
+    marginTop: 5,
     resizeMode: 'cover',
   },
   noEntriesText: {
@@ -445,6 +683,7 @@ const styles = StyleSheet.create({
     color: '#0c4793',
     textAlign: 'center',
     marginTop: 20,
+    lineHeight: 24,
   },
   addButton: {
     position: 'absolute',
@@ -459,8 +698,6 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-
-  // Conteúdo do formulário (Mantido do código original)
   formScrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -541,6 +778,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#0c4793',
     marginBottom: 10,
+    fontWeight: 'bold',
+  },
+  webInfo: {
+    fontSize: 12,
+    color: '#0c4793',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginBottom: 10,
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    padding: 8,
+    borderRadius: 5,
+  },
+  imagePreviewContainer: {
+    marginBottom: 15,
+  },
+  previewLabel: {
+    fontSize: 14,
+    color: '#0c4793',
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  previewImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: 10,
+    marginBottom: 5,
+    resizeMode: 'cover',
+    borderWidth: 1,
+    borderColor: '#0c4793',
+  },
+  imageInfo: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
   saveButton: {
     backgroundColor: '#84a9da',

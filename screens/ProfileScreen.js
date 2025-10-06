@@ -20,7 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { height } = Dimensions.get('window');
 
 // Adicione o seu IP aqui, o mesmo do arquivo server.js
-const API_URL = 'http://172.19.96.1:3000'; // Substitua pelo seu IP
+const API_URL = 'http://172.17.16.1:3000'; // Substitua pelo seu IP
 
 const ProfileScreen = ({ navigation, route }) => {
   const { userId } = route.params;
