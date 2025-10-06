@@ -13,23 +13,29 @@ import {
   Dimensions 
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFonts } from 'expo-font'; // Importado para usar a fonte
 
 const { width, height } = Dimensions.get('window');
 
+// Ícones
 const userIcon = require('../assets/src/user.png');     
 const emailIcon = require('../assets/src/email.png');   
 const senhaIcon = require('../assets/src/senha.png');   
 
-
 const RegisterScreen = ({ navigation }) => {
+  // Carregamento da fonte
+  const [fontsLoaded] = useFonts({
+    'Bree-Serif': require('../assets/fonts/BreeSerif-Regular.ttf'),
+  });
+
+  // Lógica e Estado (INALETRADOS, conforme sua instrução)
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const API_URL = 'http://172.17.16.1:3000'; 
+  const API_URL = 'http://172.24.240.1:3000'; 
 
-  // validação simples do formulário
   const validateForm = () => {
     const newErrors = {};
     if (!username) newErrors.username = 'Nome de usuário é obrigatório';
@@ -68,6 +74,15 @@ const RegisterScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
+  
+  // Loading da Fonte
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0c4793" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -77,91 +92,99 @@ const RegisterScreen = ({ navigation }) => {
       >
         <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
           
-          {/* Topo com Texto de Boas-Vindas em duas linhas e maior */}
-          <View style={styles.headerContainer}>
-            <Text style={styles.greetingText}>Seja bem vindo!</Text>
-            <Text style={styles.instructionText}>Crie sua conta para continuar</Text>
-          </View>
+          <View style={styles.contentWrapper}>
+            {/* Topo com Texto de Boas-Vindas - ALINHAMENTO/JUSTIFICADO À ESQUERDA */}
+            <View style={styles.headerContainer}>
+              <Text style={styles.greetingText}>Seja bem vindo!</Text>
+              <Text style={styles.instructionText}>Crie sua conta para continuar</Text>
+            </View>
 
-          {/* Área de formulário (A Caixa) */}
-          <View style={styles.formArea}>
-            
-            {/* Abas de Navegação */}
-            <View style={styles.tabContainer}>
+            {/* Área de formulário (A Caixa) */}
+            <View style={styles.formArea}>
+              
+              {/* Abas de Navegação */}
+              <View style={styles.tabContainer}>
+                <TouchableOpacity
+                  style={styles.inactiveTabButton}
+                  onPress={() => navigation.navigate('Login')}
+                >
+                  <Text style={styles.inactiveTabText}>ENTRAR</Text>
+                </TouchableOpacity>
+                
+                <View style={styles.activeTabButton}>
+                  <Text style={styles.activeTabText}>CADASTRAR</Text>
+                </View>
+              </View>
+
+              {/* Input de Nome de Usuário */}
+              <View style={styles.inputContainer}>
+                <View style={styles.iconBackground}>
+                  <Image source={userIcon} style={styles.inputIcon} />
+                </View>
+                <TextInput
+                  style={styles.inputField}
+                  placeholder="Nome de Usuário"
+                  // Corrigido placeholder para melhor contraste
+                  placeholderTextColor="rgba(255, 255, 255, 0.8)" 
+                  autoCapitalize="words"
+                  value={username}
+                  onChangeText={setUsername}
+                  accessibilityLabel="Campo Nome de Usuário"
+                />
+              </View>
+              {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
+
+              {/* Input de Email */}
+              <View style={styles.inputContainer}>
+                <View style={styles.iconBackground}>
+                  <Image source={emailIcon} style={styles.inputIcon} />
+                </View>
+                <TextInput
+                  style={styles.inputField}
+                  placeholder="Email"
+                  placeholderTextColor="rgba(255, 255, 255, 0.8)" 
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
+                  accessibilityLabel="Campo de Email"
+                />
+              </View>
+              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+
+              {/* Input de Senha */}
+              <View style={styles.inputContainer}>
+                <View style={styles.iconBackground}>
+                  <Image source={senhaIcon} style={styles.inputIcon} />
+                </View>
+                <TextInput
+                  style={styles.inputField}
+                  placeholder="Senha"
+                  placeholderTextColor="rgba(255, 255, 255, 0.8)" 
+                  secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
+                  accessibilityLabel="Campo de Senha"
+                />
+              </View>
+              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+
+              {/* Botão de Cadastro */}
               <TouchableOpacity
-                style={styles.inactiveTabButton}
-                onPress={() => navigation.navigate('Login')}
+                style={styles.button}
+                onPress={handleRegister}
+                disabled={loading}
+                accessibilityRole="button"
+                accessibilityLabel={loading ? "Carregando" : "Criar sua conta"}
               >
-                <Text style={styles.inactiveTabText}>ENTRAR</Text>
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>CADASTRAR</Text>
+                )}
               </TouchableOpacity>
               
-              <View style={styles.activeTabButton}>
-                <Text style={styles.activeTabText}>CADASTRAR</Text>
-              </View>
             </View>
-
-            {/* Input de Nome de Usuário */}
-            <View style={styles.inputContainer}>
-              <View style={styles.iconBackground}>
-                <Image source={userIcon} style={styles.inputIcon} />
-              </View>
-              <TextInput
-                style={styles.inputField}
-                placeholder="Nome de Usuário"
-                placeholderTextColor="#fff" 
-                autoCapitalize="words"
-                value={username}
-                onChangeText={setUsername}
-              />
-            </View>
-            {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
-
-            {/* Input de Email */}
-            <View style={styles.inputContainer}>
-              <View style={styles.iconBackground}>
-                <Image source={emailIcon} style={styles.inputIcon} />
-              </View>
-              <TextInput
-                style={styles.inputField}
-                placeholder="Email"
-                placeholderTextColor="#fff" 
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={setEmail}
-              />
-            </View>
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-
-            {/* Input de Senha */}
-            <View style={styles.inputContainer}>
-              <View style={styles.iconBackground}>
-                <Image source={senhaIcon} style={styles.inputIcon} />
-              </View>
-              <TextInput
-                style={styles.inputField}
-                placeholder="Senha"
-                placeholderTextColor="#fff" 
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-              />
-            </View>
-            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-
-            {/* Botão de Cadastro */}
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleRegister}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>CADASTRAR</Text>
-              )}
-            </TouchableOpacity>
-            
           </View>
         </ScrollView>
       </LinearGradient>
@@ -174,10 +197,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     alignItems: 'center',
   },
+  // *** CENTRALIZAÇÃO VERTICAL ***
   scrollContainer: {
     flexGrow: 1,
     width: width, 
@@ -185,35 +215,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     paddingVertical: height * 0.05, 
   },
-  // --- HEADER (AJUSTADO) ---
-  headerContainer: {
-    width: '100%',
-    height: height * 0.15, // Aumentado para dar espaço ao texto maior
+  contentWrapper: {
+    width: '100%', 
     alignItems: 'center',
-    justifyContent: 'flex-start', // Alinha no topo
-    marginBottom: 20, // Reduzido para subir um pouco
-    paddingTop: 10, // Pequeno padding no topo
   },
-  greetingText: { // TEXTO PRINCIPAL (SEJA BEM VINDO)
+  
+  // --- HEADER (ALINHAMENTO À ESQUERDA e TIPOGRAFIA) ---
+  headerContainer: {
+    width: '85%', 
+    alignItems: 'flex-start', // **JUSTIFICADO NO CANTO ESQUERDO**
+    paddingHorizontal: 5, 
+    marginBottom: height * 0.03, // Espaço entre o cabeçalho e o formulário
+  },
+  greetingText: { 
+    fontFamily: 'Bree-Serif', // Fonte aplicada
     fontSize: width * 0.09, 
     color: '#31356e', 
     fontWeight: 'bold', 
-    textAlign: 'center',
-    marginBottom: 5,
+    textAlign: 'left',
+    marginBottom: 2, 
   },
-  instructionText: { // TEXTO SECUNDÁRIO (INSTRUÇÃO)
+  instructionText: { 
+    fontFamily: 'Bree-Serif', // Fonte aplicada
     fontSize: width * 0.05, 
     color: '#31356e', 
-    textAlign: 'center',
-    paddingHorizontal: 20,
+    textAlign: 'left',
     fontWeight: '500', 
   },
+  
   // --- FORMULÁRIO (A Caixa) ---
   formArea: {
     width: '85%', 
-    paddingHorizontal: 20,
-    paddingVertical: 30, 
-    backgroundColor: 'rgba(255, 255, 255, 0.65)', 
+    paddingHorizontal: width * 0.05, // Responsividade
+    paddingVertical: height * 0.04, // Responsividade
+    backgroundColor: 'rgba(255, 255, 255, 0.42)',  
     borderRadius: 25, 
     alignItems: 'center',
     elevation: 10,
@@ -222,11 +257,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
-  // Abas de Navegação
+  
+  // Abas de Navegação (MANTIDAS)
   tabContainer: {
     flexDirection: 'row',
     width: '100%',
-    marginBottom: 30, 
+    marginBottom: height * 0.04, // Responsividade
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
@@ -245,63 +281,66 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: '#0c4793', 
     fontWeight: 'bold',
-    fontSize: width * 0.05, 
+    fontSize: width * 0.045, 
   },
   inactiveTabText: {
     color: '#64a1e6', 
     fontWeight: 'bold',
-    fontSize: width * 0.05, 
+    fontSize: width * 0.045, 
   },
+  
   // Conteúdo do Formulário (inputs e botão)
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(132, 169, 218, 0.53)', 
+    backgroundColor: 'rgba(132, 169, 218, 0.7)', // Melhor contraste
     borderRadius: 15, 
-    marginBottom: 10, 
+    marginBottom: height * 0.02, // Responsividade
     width: '100%',
     paddingHorizontal: 5, 
-    height: 50, 
+    height: height * 0.065, // Responsividade
   },
   iconBackground: { 
     backgroundColor: '#5691de', 
-    borderRadius: 10, 
-    padding: 8, 
+    borderRadius: 15, 
+    padding: width * 0.02, 
     marginRight: 10, 
-    height: 40,
-    width: 40,
+    marginLeft: -5, 
+    height: '100%',
+    aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   inputIcon: {
-    width: 20, 
-    height: 20,
+    width: '100%', 
+    height: '100%',
     resizeMode: 'contain',
     tintColor: '#fff', 
   },
   inputField: {
     flex: 1,
-    paddingVertical: 12, 
     color: '#fff', 
     fontSize: width * 0.045,
     paddingRight: 10,
   },
   errorText: {
-    color: 'red',
+    color: '#d9534f', 
     alignSelf: 'flex-start',
-    marginBottom: 10,
+    marginBottom: height * 0.01, // Responsividade
     marginLeft: 10,
     fontSize: width * 0.035,
+    fontWeight: '500',
   },
+  
   // --- BOTÃO ---
   button: {
     backgroundColor: '#0c4793', 
     borderRadius: 15,
-    paddingVertical: 12, 
+    paddingVertical: height * 0.018, // Responsividade
     width: '100%',
     alignItems: 'center',
-    marginTop: 25, 
-    marginBottom: 15,
+    marginTop: height * 0.03, // Responsividade
+    marginBottom: height * 0.02,
     elevation: 5,
     shadowColor: '#64a1e6', 
     shadowOffset: { width: 0, height: 4 },
@@ -309,6 +348,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
   },
   buttonText: {
+    fontFamily: 'Bree-Serif', // Fonte aplicada
     color: '#fff',
     fontSize: width * 0.05,
     fontWeight: 'bold',

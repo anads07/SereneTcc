@@ -19,7 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { width } = Dimensions.get('window');
 
 // URL do seu servidor backend
-const API_URL = 'http://172.17.16.1:3000'; 
+const API_URL = 'http://172.24.240.1:3000'; 
 
 // Emoções disponíveis
 const moods = [

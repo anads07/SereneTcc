@@ -8,11 +8,18 @@ import {
   ActivityIndicator, 
   Animated,
   SafeAreaView,
-  ScrollView 
+  ScrollView,
+  Dimensions, 
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
+
+// Obtém a altura e largura da tela para responsividade aprimorada
+const { width, height } = Dimensions.get('window');
+
+// Define um tamanho base de fonte que escala com a largura da tela
+const FONT_BASE_SIZE = width * 0.055; 
 
 // imagens utilizadas na tela
 const logoImage = require('../assets/src/logo.png');
@@ -33,7 +40,7 @@ const ApresentacaoScreen = ({ navigation }) => {
       duration: 1500,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [fadeAnim]); 
 
   // mostra loading enquanto a fonte não carregou
   if (!fontsLoaded) {
@@ -50,28 +57,42 @@ const ApresentacaoScreen = ({ navigation }) => {
         colors={['#fff', '#a4c4ff']}
         style={styles.background}
       >
+        {/* Usamos o ScrollView para permitir scroll em telas muito pequenas, mas forçamos o preenchimento da tela */}
         <ScrollView contentContainerStyle={styles.scrollContainer}>
+          {/* Container principal para o conteúdo centralizado */}
           <View style={styles.container}>
-            {/* conteúdo com animação */}
+            
+            {/* Conteúdo principal com animação */}
             <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-              <Image
-                source={logoImage}
-                style={styles.logo}
-                accessibilityLabel="Logo do aplicativo Serene"
-                accessibilityHint="Imagem representando a logo do aplicativo de saúde mental"
-              />
-              <Image
-                source={apresentacaoImage}
-                style={styles.illustration}
-                accessibilityLabel="Ilustração de apresentação"
-                accessibilityHint="Imagem representando saúde mental e bem-estar"
-              />
-              <Text style={styles.text}>
-                Transforme sua mente, cuide de sua alma: juntos, podemos construir um caminho para o bem-estar mental.
-              </Text>
+              {/* Logo */}
+              <View style={styles.logoContainer}>
+                <Image
+                  source={logoImage}
+                  style={styles.logo}
+                  accessibilityLabel="Logo do aplicativo Serene"
+                  accessibilityHint="Imagem representando a logo do aplicativo de saúde mental"
+                />
+              </View>
+              
+              {/* Ilustração (agora tem margem inferior controlada) */}
+              <View style={styles.illustrationContainer}>
+                <Image
+                  source={apresentacaoImage}
+                  style={styles.illustration}
+                  accessibilityLabel="Ilustração de apresentação"
+                  accessibilityHint="Imagem representando saúde mental e bem-estar"
+                />
+              </View>
+
+              {/* Texto (agora tem margem superior controlada) */}
+              <View style={styles.textContainer}>
+                <Text style={styles.text}>
+                  Transforme sua mente, cuide de sua alma: juntos, podemos construir um caminho para o bem-estar mental.
+                </Text>
+              </View>
             </Animated.View>
 
-            {/* botão para navegar à próxima tela */}
+            {/* botão para navegar à próxima tela (posicionado absolutamente) */}
             <View style={styles.arrowButton}>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Login')}
@@ -82,7 +103,7 @@ const ApresentacaoScreen = ({ navigation }) => {
               >
                 <Ionicons 
                   name="arrow-forward-circle" 
-                  size={60} 
+                  size={height * 0.08} // Tamanho relativo à altura da tela
                   color="#0c4793" 
                   style={styles.arrowIcon} 
                 />
@@ -100,14 +121,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff', 
   },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'space-around',
+  background: {
+    flex: 1, 
   },
+  // *** ALTERAÇÃO CHAVE: Centraliza o conteúdo verticalmente para telas grandes
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: 'space-around',
+    justifyContent: 'center', 
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: 20, 
+    paddingTop: height * 0.05, 
+    alignItems: 'center',
+    justifyContent: 'center', // Adicionado para centralizar o `content`
   },
   loadingContainer: {
     flex: 1,
@@ -115,43 +142,60 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
-  background: {
-    flex: 1, 
-  },
   content: {
-    flex: 1,
-    justifyContent: 'space-around',
+    // *** ALTERAÇÃO CHAVE: Mudado de 'space-between' para 'center' para evitar esticamento excessivo
+    justifyContent: 'center', 
     alignItems: 'center',
-    paddingVertical: 20,
     width: '100%',
+    // Padding vertical geral para evitar que o conteúdo toque nas bordas
+    paddingVertical: height * 0.04, 
+    // Removemos paddingBottom fixo, pois o botão está absoluto e a centralização garante o espaço
   },
-  logo: {
-    width: 150,
-    height: 50,
-    resizeMode: 'contain',
+  
+  // Containers para melhor controle de espaçamento
+  logoContainer: {
+    marginBottom: height * 0.03, // Margem relativa
+  },
+  illustrationContainer: {
+    // Reduzimos o flex: 1 para que não ocupe espaço desnecessário
+    marginBottom: height * 0.03, // Margem relativa
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: -20,
+  },
+  textContainer: {
+    // Não precisamos de margin-top, a margin-bottom da ilustração resolve o espaço
+    marginTop: 0, 
+  },
+
+  logo: {
+    width: width * 0.4, // Largura adaptativa (40% da largura da tela)
+    height: width * 0.15, // Altura adaptativa
+    resizeMode: 'contain',
   },
   illustration: {
-    width: 300,
-    height: 300,
+    width: width * 0.75, // Ajustado para ser 75% da largura da tela
+    // Usaremos uma altura fixa relativa para evitar que estique demais em tablets
+    height: height * 0.4, 
+    maxHeight: 350, 
     resizeMode: 'contain',
-    marginTop: -120,
   },
   text: {
     fontFamily: 'Bree-Serif',
-    fontSize: 22,
+    // *** ALTERAÇÃO CHAVE: Ajustando o tamanho da fonte com base em FONT_BASE_SIZE ***
+    fontSize: FONT_BASE_SIZE > 24 ? 24 : FONT_BASE_SIZE, 
     color: '#0c4793',
     marginHorizontal: 40,
-    lineHeight: 30,
-    marginTop: -120,
+    lineHeight: FONT_BASE_SIZE * 1.4, // Line height proporcional ao tamanho da fonte
     textAlign: 'center',
     fontWeight: 'bold',
   },
+  
+  // O botão de seta permanece fixo no canto
   arrowButton: {
     position: 'absolute',
-    bottom: 40,
-    right: 40,
+    bottom: height * 0.05, // Posição relativa
+    right: width * 0.05, // Posição relativa
+    zIndex: 10, 
   },
   arrowIcon: {
     textShadowColor: '#001a4d',

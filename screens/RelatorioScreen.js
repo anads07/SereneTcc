@@ -4,7 +4,7 @@ import { PieChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient'; 
 
 const screenWidth = Dimensions.get('window').width;
-const API_URL = 'http://172.17.16.1:3000'; // Substitua pelo seu IP
+const API_URL = 'http://172.24.240.1:3000'; // Substitua pelo seu IP
 
 // Frases motivacionais para o post-it
 const frases = [
