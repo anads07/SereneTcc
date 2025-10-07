@@ -9,11 +9,14 @@ import {
   Linking,
   SafeAreaView,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Dimensions
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// fluxo de conversa do chatbot
+const { width, height } = Dimensions.get('window');
+
+// fluxo de conversa do chatbot (mantido igual)
 const chatFlow = {
   initial: {
     botMessage: 'Olá! Do que você precisa?',
@@ -208,7 +211,9 @@ const ChatBotScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (scrollViewRef.current) {
-      scrollViewRef.current.scrollToEnd({ animated: true });
+      setTimeout(() => {
+        scrollViewRef.current.scrollToEnd({ animated: true });
+      }, 100);
     }
   }, [messages]);
 
@@ -255,11 +260,14 @@ const ChatBotScreen = ({ navigation }) => {
         <KeyboardAvoidingView
           style={styles.keyboardAvoidingView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
           <ScrollView
             style={styles.chatArea}
             contentContainerStyle={styles.chatContent}
             ref={scrollViewRef}
+            showsVerticalScrollIndicator={true}
+            keyboardShouldPersistTaps="handled"
           >
             {messages.map((msg, index) => {
               if (msg.type === 'bot') return <ChatMessage key={index} text={msg.text} isUser={false} />;
@@ -273,6 +281,8 @@ const ChatBotScreen = ({ navigation }) => {
               );
               return null;
             })}
+            {/* Espaço extra no final para garantir scroll */}
+            <View style={styles.bottomSpacer} />
           </ScrollView>
         </KeyboardAvoidingView>
       </LinearGradient>
@@ -287,7 +297,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   background: {
-    flex: 1
+    flex: 1,
+    minHeight: height // FORÇA ALTURA PARA SCROLL
   },
   keyboardAvoidingView: {
     flex: 1
@@ -330,9 +341,14 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center'
   },
+  chatArea: {
+    flex: 1,
+  },
   chatContent: {
+    flexGrow: 1,
     paddingVertical: 15,
-    paddingHorizontal: 15
+    paddingHorizontal: 15,
+    minHeight: height - 150, // FORÇA SCROLL VERTICAL
   },
   messageContainer: {
     maxWidth: '80%',
@@ -385,6 +401,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'white',
     textAlign: 'center'
+  },
+  bottomSpacer: {
+    height: 30
   }
 });
 

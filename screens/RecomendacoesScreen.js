@@ -11,12 +11,13 @@ import {
   Dimensions,
   Easing,
   Modal,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Obter largura da tela
-const { width } = Dimensions.get('window');
+// Obter dimensões da tela
+const { width, height } = Dimensions.get('window');
 
 // ====== DADOS ======
 
@@ -260,7 +261,6 @@ const todasRecomendacoes = [
   },
 ];
 
-
 // Frases aleatórias para os balões de conversa
 const frasesBalao1 = [
   'Hora de dar uma pausa e respirar fundo 🌿',
@@ -359,12 +359,16 @@ const RecomendacoesScreen = () => {
             <Image source={require('../assets/src/seta.png')} style={styles.backArrow} />
           </TouchableOpacity>
           <Text style={styles.headerText}>CUIDANDO DE VOCÊ</Text>
-          <View style={{ width: 40 }} />
+          <View style={styles.headerPlaceholder} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Balões de conversa */}
-          <View style={styles.baloesContainerColumn}>
+          <View style={styles.baloesContainer}>
             <Animated.View
               style={[styles.balaoContainer, { opacity: balao1Anim, transform: [{ rotate: '1deg' }] }]}
             >
@@ -392,9 +396,18 @@ const RecomendacoesScreen = () => {
           {showRecommendations && (
             <Animated.View style={[styles.recommendationsContainer, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
               <View style={styles.gridContainer}>
-                {displayedRecommendations.map((item, index) => (
-                  <RecommendationItem key={index} item={item} />
-                ))}
+                {/* Primeira linha - 2 cards */}
+                <View style={styles.row}>
+                  {displayedRecommendations.slice(0, 2).map((item, index) => (
+                    <RecommendationItem key={index} item={item} />
+                  ))}
+                </View>
+                {/* Segunda linha - 2 cards */}
+                <View style={styles.row}>
+                  {displayedRecommendations.slice(2, 4).map((item, index) => (
+                    <RecommendationItem key={index + 2} item={item} />
+                  ))}
+                </View>
               </View>
             </Animated.View>
           )}
@@ -427,7 +440,6 @@ const RecomendacoesScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   background: {
     flex: 1,
@@ -435,49 +447,54 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  // HEADER - UM POUQUINHO MAIOR
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#a2caff',
     width: '100%',
+    height: Platform.OS === 'ios' ? 85 : 75, // UM POUQUINHO MAIOR
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingVertical: -10,
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingHorizontal: 15,
+    paddingTop: Platform.OS === 'ios' ? 15 : 8, // UM POUQUINHO MAIOR
     borderBottomLeftRadius: 15,
     borderBottomRightRadius: 15,
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingTop: 20,
-    paddingBottom: 20,
-    alignItems: 'center',
-  },
   backButton: {
-    padding: 10,
+    padding: 5,
   },
   backArrow: {
-    width: 40,
-    height: 40,
+    width: 32, // UM POUQUINHO MAIOR
+    height: 32, // UM POUQUINHO MAIOR
     resizeMode: 'contain',
     tintColor: 'white',
   },
   headerText: {
-    fontSize: 28,
-    fontFamily: 'Bree-Serif',
+    fontSize: width > 400 ? 24 : 22, // UM POUQUINHO MAIOR
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
+    fontFamily: 'Bree-Serif',
   },
-  baloesContainerColumn: {
-    flexDirection: 'column',
+  headerPlaceholder: {
+    width: 32, // UM POUQUINHO MAIOR
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingTop: 20, // ZERO para ficar colado
+    paddingBottom: 15,
+  },
+  baloesContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: -5, // NEGATIVO para subir mais
+    marginBottom: 10,
   },
   balaoContainer: {
-    marginVertical: -70,
-    width: width * 0.9,
+    marginVertical: -60, // MAIS NEGATIVO para aproximar os balões
+    width: width * 0.88, // MAIOR
     aspectRatio: 1.5,
     position: 'relative',
     justifyContent: 'center',
@@ -493,19 +510,22 @@ const styles = StyleSheet.create({
     position: 'absolute',
     textAlign: 'center',
     width: '70%',
-    fontSize: 18,
+    fontSize: width > 400 ? 20 : 18, // MAIOR
     color: 'white',
-    padding: 10,
+    padding: 12, // MAIOR
     fontFamily: 'Bree-Serif',
+    fontWeight: 'bold',
+    lineHeight: 22, // MAIOR
   },
   okButtonContainer: {
-    marginTop: 10,
+    marginTop: -10, // NEGATIVO para subir mais
+    marginBottom: 5,
   },
   okButton: {
     backgroundColor: '#a2caff',
     borderRadius: 20,
     paddingHorizontal: 40,
-    paddingVertical: 10,
+    paddingVertical: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -513,23 +533,40 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   okButtonText: {
-    fontSize: 18,
+    fontSize: width > 400 ? 18 : 16,
     fontWeight: 'bold',
     color: 'white',
+    fontFamily: 'Bree-Serif',
+  },
+  recommendationsContainer: {
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    marginTop: 0, // ZERO para ficar mais próximo
   },
   gridContainer: {
+    width: '100%',
+    maxWidth: 500,
+  },
+  row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-around',
-    paddingHorizontal: 12,
+    marginBottom: 8,
   },
   activityCard: {
-    width: width * 0.42,
+    width: width * 0.44,
     backgroundColor: '#84a9da',
-    borderRadius: 20,
-    padding: 4,
-    margin: 8,
+    borderRadius: 15,
+    padding: 14,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    minHeight: 165,
+    justifyContent: 'space-between',
   },
   activityImage: {
     width: 60,
@@ -538,28 +575,30 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   activityTitle: {
-    fontSize: 16,
+    fontSize: width > 400 ? 16 : 14,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
     fontFamily: 'Bree-Serif',
   },
   activityObjective: {
-    fontSize: 14,
+    fontSize: width > 400 ? 13 : 11,
     textAlign: 'center',
     color: '#fff',
-    marginTop: 4,
     fontFamily: 'Bree-Serif',
+    lineHeight: 16,
   },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 20,
   },
   modalContent: {
-    width: '80%',
+    width: '90%',
+    maxWidth: 400,
     backgroundColor: '#84a9da',
     borderRadius: 20,
     padding: 20,
@@ -571,13 +610,13 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalImage: {
-    width: 100,
-    height: 100,
+    width: 80,
+    height: 80,
     resizeMode: 'contain',
     marginBottom: 15,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: width > 400 ? 20 : 18,
     fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
@@ -585,22 +624,22 @@ const styles = StyleSheet.create({
     fontFamily: 'Bree-Serif',
   },
   modalDescription: {
-    fontSize: 16,
+    fontSize: width > 400 ? 15 : 13,
     textAlign: 'center',
     color: 'white',
     marginBottom: 20,
-    lineHeight: 22,
+    lineHeight: 20,
     fontFamily: 'Bree-Serif',
   },
   closeModalButton: {
     backgroundColor: '#0c4793',
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 25,
     borderRadius: 15,
   },
   closeModalText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: width > 400 ? 16 : 14,
     fontWeight: 'bold',
     fontFamily: 'Bree-Serif',
   },

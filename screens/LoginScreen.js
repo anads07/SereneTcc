@@ -30,7 +30,7 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const API_URL = 'http://172.24.240.1:3000'; 
+  const API_URL = 'http://172.30.32.1:3000'; 
   
   // As funções validateForm e handleLogin são mantidas aqui...
   const validateForm = () => {

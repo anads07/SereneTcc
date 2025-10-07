@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions, ScrollView, ImageBackground, Alert } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions, ScrollView, ImageBackground, Alert, Platform } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient'; 
 
 const screenWidth = Dimensions.get('window').width;
-const API_URL = 'http://172.24.240.1:3000'; // Substitua pelo seu IP
+const API_URL = 'http://172.30.32.1:3000'; // Substitua pelo seu IP
 
 // Frases motivacionais para o post-it
 const frases = [
@@ -286,80 +286,86 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 40,
+    paddingBottom: 20,
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 20,
+    paddingTop: 20, // Removi o Platform temporariamente
     paddingBottom: 5,
+    width: '100%',
+    paddingHorizontal: 10,
   },
   backButton: {
     position: 'absolute',
-    left: 5,
+    left: 10,
     padding: 10,
     zIndex: 100,
   },
   backIcon: {
-    width: 40,
-    height: 40,
+    width: 35,
+    height: 35,
     tintColor: 'white',
   },
   headerTitleContainer: {
     flex: 1,
     alignItems: 'center',
+    marginHorizontal: 50,
   },
   headerText: {
-    fontSize: 28,
+    fontSize: screenWidth > 400 ? 25 : 22,
     fontFamily: 'Bree-Serif',
     fontWeight: 'bold',
     color: 'white',
-    marginLeft: 40,
-    lineHeight: 30,
+    lineHeight: 28,
     includeFontPadding: false,
     textAlign: 'center',
   },
   emotionsContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     marginTop: 20,
-    marginBottom: 5, 
+    marginBottom: 5,
+    paddingHorizontal: 20,
+    width: '100%',
+    maxWidth: 400,
   },
   emojiButton: {
-    padding: 10,
+    padding: 8,
     borderRadius: 50,
   },
   emoji: {
-    width: 40,
-    height: 40,
+    width: screenWidth > 400 ? 45 : 40,
+    height: screenWidth > 400 ? 45 : 40,
   },
-  // ESTILO NOVO: Botão desabilitado
   disabledButton: {
     opacity: 0.4,
   },
-  // ESTILO NOVO: Mensagem de limite diário
   dailyLimitMessage: {
     textAlign: 'center',
-    fontSize: 16,
-    color: '#e52b17', // Cor de alerta
+    fontSize: screenWidth > 400 ? 16 : 14,
+    color: '#e52b17',
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 5,
+    paddingHorizontal: 20,
   },
   barra: {
     width: '80%',
     height: 20,
     alignSelf: 'center',
     marginVertical: 10,
-    marginBottom: -10
+    maxWidth: 300,
   },
   postitContainer: {
     alignSelf: 'center',
-    width: screenWidth * 0.8,
-    height: screenWidth * 0.8 * (230 / 320),
+    width: Math.min(screenWidth * 0.8, 320),
+    height: Math.min(screenWidth * 0.8 * (230 / 320), 230),
     marginVertical: 10,
     transform: [{ rotate: '-3deg' }],
-    marginBottom: 20
+    marginBottom: -10,
+    marginTop: -20,
   },
   postitImage: {
     width: '100%',
@@ -379,39 +385,46 @@ const styles = StyleSheet.create({
   },
   frase: {
     color: 'black',
-    fontSize: 18,
+    fontSize: screenWidth > 400 ? 18 : 16,
     fontFamily: 'Bree-Serif',
     textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: 40,
-    paddingVertical: 35,
+    lineHeight: screenWidth > 400 ? 22 : 20,
+    paddingHorizontal: 30,
+    paddingVertical: 30,
   },
   resumoContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.79)',
     borderRadius: 20,
-    marginHorizontal: 20,
-    padding: 20,
+    marginHorizontal: 15,
+    padding: 15,
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 5,
-    marginTop: -20
+    width: '90%',
+    maxWidth: 400,
+    minHeight: 180,
+    justifyContent: 'center',
   },
   resumoText: {
-    fontSize: 22,
+    fontSize: screenWidth > 400 ? 22 : 20,
     fontFamily: 'Bree-Serif',
     fontWeight: 'bold',
     color: '#0c4793',
     marginBottom: 10,
-    marginHorizontal: 10,
+    textAlign: 'center',
+  },
+  chartStyle: {
+    marginVertical: 8,
   },
   noDataText: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: screenWidth > 400 ? 16 : 14,
     color: '#555',
+    paddingHorizontal: 10,
   }
 });
 

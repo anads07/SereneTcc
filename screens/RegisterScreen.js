@@ -34,13 +34,13 @@ const RegisterScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const API_URL = 'http://172.24.240.1:3000'; 
+  const API_URL = 'http://172.30.32.1:3000'; 
 
   const validateForm = () => {
     const newErrors = {};
     if (!username) newErrors.username = 'Nome de usuário é obrigatório';
     if (!email) newErrors.email = 'Email é obrigatório';
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email inválido';
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'E-mail inválido, adicione uma forma válida'; // MENSAGEM CORRIGIDA
     if (!password) newErrors.password = 'Senha é obrigatória';
     else if (password.length < 6) newErrors.password = 'A senha deve ter no mínimo 6 caracteres';
     setErrors(newErrors);

@@ -24,7 +24,7 @@ const FONT_BASE_SIZE = height * 0.022;
 const CONTENT_MAX_WIDTH = 500; // Largura máxima para o bloco de conteúdo
 
 // Adicione o seu IP aqui, o mesmo do arquivo server.js
-const API_URL = 'http://172.24.240.1:3000'; // Substitua pelo seu IP
+const API_URL = 'http://172.30.32.1:3000'; // Substitua pelo seu IP
 
 // Certifique-se de que os assets existem
 const backArrowImage = require('../assets/src/seta.png');
