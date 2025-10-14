@@ -1,38 +1,25 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  SafeAreaView,
-  Dimensions, 
-} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Alert, ActivityIndicator, SafeAreaView, Dimensions,} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFonts } from 'expo-font'; 
+import { useFonts } from 'expo-font';
 
 const { width, height } = Dimensions.get('window');
 
-const emailIcon = require('../assets/src/user.png'); 
-const senhaIcon = require('../assets/src/senha.png'); 
+const emailIcon = require('../assets/src/user.png');
+const senhaIcon = require('../assets/src/senha.png');
 
 const LoginScreen = ({ navigation }) => {
   const [fontsLoaded] = useFonts({
     'Bree-Serif': require('../assets/fonts/BreeSerif-Regular.ttf'),
   });
 
-  // O restante do estado e lógica (handleLogin, validateForm, API_URL) permanece INALTERADO
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const API_URL = 'http://172.30.32.1:3000'; 
-  
-  // As funções validateForm e handleLogin são mantidas aqui...
+  const API_URL = 'http://192.168.0.1:3000';
+
+  // valida os campos de email e senha
   const validateForm = () => {
     const newErrors = {};
     if (!email) newErrors.email = 'Email é obrigatório';
@@ -42,12 +29,12 @@ const LoginScreen = ({ navigation }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // realiza o login chamando a API
   const handleLogin = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
+
     setLoading(true);
-    setErrors({}); 
+    setErrors({});
 
     try {
       const response = await fetch(`${API_URL}/login`, {
@@ -55,12 +42,12 @@ const LoginScreen = ({ navigation }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password }),
       });
-      
+
       const data = await response.json();
 
       if (response.ok) {
         Alert.alert('Sucesso', data.message || 'Login realizado com sucesso!');
-        navigation.navigate('Menu', { userId: data.userId, username: data.username }); 
+        navigation.navigate('Menu', { userId: data.userId, username: data.username });
       } else if (response.status === 401) {
         Alert.alert('Erro no Login', 'Email ou senha incorretos. Tente novamente.');
       } else {
@@ -84,38 +71,30 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
-        colors={['#fefeff', '#a4c4ff']} 
-        style={styles.container}
-      >
-        {/* ScrollView forçará o conteúdo a centralizar e permitirá scroll se a tela for pequena */}
+      <LinearGradient colors={['#fefeff', '#a4c4ff']} style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-          
-          <View style={styles.contentWrapper}> 
-            {/* Topo com Texto de Boas-Vindas - JUSTIFICADO À ESQUERDA */}
+          <View style={styles.contentWrapper}>
+
             <View style={styles.headerContainer}>
               <Text style={styles.greetingText}>Bem vindo!</Text>
               <Text style={styles.instructionText}>Faça seu login para continuar</Text>
             </View>
 
-            {/* Área de formulário (A Caixa) */}
             <View style={styles.formArea}>
-              
-              {/* Abas de Navegação */}
+
               <View style={styles.tabContainer}>
                 <View style={styles.activeTabButton}>
                   <Text style={styles.activeTabText}>ENTRAR</Text>
                 </View>
-                
+
                 <TouchableOpacity
                   style={styles.inactiveTabButton}
-                  onPress={() => navigation.navigate('Register')} 
+                  onPress={() => navigation.navigate('Register')}
                 >
                   <Text style={styles.inactiveTabText}>CADASTRAR</Text>
                 </TouchableOpacity>
               </View>
 
-              {/* Input de Email */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={emailIcon} style={styles.inputIcon} />
@@ -123,7 +102,7 @@ const LoginScreen = ({ navigation }) => {
                 <TextInput
                   style={styles.inputField}
                   placeholder="Email"
-                  placeholderTextColor="rgba(255, 255, 255, 0.8)" 
+                  placeholderTextColor="rgba(255, 255, 255, 0.8)"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   value={email}
@@ -133,7 +112,6 @@ const LoginScreen = ({ navigation }) => {
               </View>
               {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
-              {/* Input de Senha */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={senhaIcon} style={styles.inputIcon} />
@@ -141,7 +119,7 @@ const LoginScreen = ({ navigation }) => {
                 <TextInput
                   style={styles.inputField}
                   placeholder="Senha"
-                  placeholderTextColor="rgba(255, 255, 255, 0.8)" 
+                  placeholderTextColor="rgba(255, 255, 255, 0.8)"
                   secureTextEntry
                   value={password}
                   onChangeText={setPassword}
@@ -150,7 +128,6 @@ const LoginScreen = ({ navigation }) => {
               </View>
               {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
-              {/* Botão de Login */}
               <TouchableOpacity
                 style={styles.button}
                 onPress={handleLogin}
@@ -188,12 +165,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
-  // *** ALTERAÇÃO CRUCIAL PARA CENTRALIZAÇÃO VERTICAL ***
+  // centralização do conteúdo
   scrollContainer: {
     flexGrow: 1,
     width: width, 
     alignItems: 'center',
-    // Garante que o conteúdo seja centralizado verticalmente no ScrollView
     justifyContent: 'center', 
     paddingVertical: height * 0.05, 
   },
@@ -202,22 +178,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   
-  // --- HEADER (ALINHAMENTO À ESQUERDA) ---
   headerContainer: {
-    width: '85%', // Mesma largura do formulário
-    alignItems: 'flex-start', // **JUSTIFICADO NO CANTO ESQUERDO**
+    width: '85%',
+    alignItems: 'flex-start',
     paddingHorizontal: 5, 
-    marginBottom: height * 0.03, // Espaço entre o cabeçalho e o formulário
+    marginBottom: height * 0.03,
   },
-  greetingText: { // TEXTO PRINCIPAL (BEM VINDO)
+  greetingText: {
     fontFamily: 'Bree-Serif', 
     fontSize: width * 0.09, 
     color: '#31356e', 
     fontWeight: 'bold', 
     textAlign: 'left',
-    marginBottom: 2, // Espaçamento menor entre os textos
+    marginBottom: 2,
   },
-  instructionText: { // TEXTO SECUNDÁRIO (INSTRUÇÃO)
+  instructionText: {
     fontFamily: 'Bree-Serif', 
     fontSize: width * 0.05, 
     color: '#31356e', 
@@ -225,22 +200,21 @@ const styles = StyleSheet.create({
     fontWeight: '500', 
   },
   
-  // --- FORMULÁRIO (A Caixa) ---
+  // área do formulário
   formArea: {
     width: '85%', 
     paddingHorizontal: width * 0.05, 
     paddingVertical: height * 0.04, 
-    backgroundColor: 'rgba(255, 255, 255, 0.42)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.)', 
     borderRadius: 25, 
     alignItems: 'center',
     elevation: 10,
-    shadowColor: '#64a1e6', 
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
+    // shadowColor: '#64a1e6', 
+    // shadowOffset: { width: 0, height: 4 },
+    // shadowOpacity: 0.3,
+    // shadowRadius: 5,
   },
   
-  // Abas de Navegação (mantidas)
   tabContainer: {
     flexDirection: 'row',
     width: '100%',
@@ -271,7 +245,6 @@ const styles = StyleSheet.create({
     fontSize: width * 0.045, 
   },
   
-  // Conteúdo do Formulário (inputs e botão)
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -314,7 +287,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   
-  // --- BOTÃO ---
   button: {
     backgroundColor: '#0c4793', 
     borderRadius: 15,

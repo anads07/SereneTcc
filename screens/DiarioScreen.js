@@ -1,28 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  TextInput,
-  Alert,
-  ScrollView,
-  SafeAreaView,
-  Dimensions,
-  Platform,
-  KeyboardAvoidingView
-} from 'react-native';
+import {  SafeAreaProvider,StyleSheet, View, Text, TouchableOpacity, Image, TextInput, Alert, ScrollView, SafeAreaView, Dimensions, Platform, KeyboardAvoidingView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
+const API_URL = 'http://192.168.0.1:3000';
 
-// URL do seu servidor backend
-const API_URL = 'http://172.30.32.1:3000'; 
-
-// Emoções disponíveis
 const moods = [
   { name: 'Feliz', icon: 'happy-outline', color: '#a1bce2' },
   { name: 'Triste', icon: 'sad-outline', color: '#a1bce2' },
@@ -32,7 +16,7 @@ const moods = [
 ];
 
 const DiarioScreen = ({ navigation, route }) => {
-  const userId = route.params?.userId || 1; 
+  const userId = route.params?.userId || 1;
 
   const [entries, setEntries] = useState([]);
   const [showList, setShowList] = useState(true);
@@ -43,25 +27,19 @@ const DiarioScreen = ({ navigation, route }) => {
   const [imageAddedMessage, setImageAddedMessage] = useState('');
   const [validationError, setValidationError] = useState('');
 
-  // Verificar se está no ambiente web
   const isWeb = Platform.OS === 'web';
 
-  // Buscar entradas do diário
+  // carregar entradas do diário
   useEffect(() => {
     const fetchEntries = async () => {
       try {
-        console.log('Buscando entradas para usuário:', userId);
         const response = await fetch(`${API_URL}/diary/getEntries/${userId}`);
         
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Erro na resposta:', response.status, errorText);
           throw new Error(`Erro HTTP: ${response.status}`);
         }
         
         const fetchedEntries = await response.json();
-        console.log('Entradas recebidas:', fetchedEntries);
-
         const formattedEntries = fetchedEntries.map(entry => ({
           id: entry.id,
           date: new Date(entry.created_at).toLocaleDateString('pt-BR'), 
@@ -72,8 +50,7 @@ const DiarioScreen = ({ navigation, route }) => {
 
         setEntries(formattedEntries);
       } catch (error) {
-        console.error('Erro ao buscar entradas:', error);
-        Alert.alert('Erro', 'Não foi possível carregar as anotações. Verifique a conexão com o servidor.');
+        Alert.alert('Erro', 'Não foi possível carregar as anotações.');
       }
     };
 
@@ -91,13 +68,9 @@ const DiarioScreen = ({ navigation, route }) => {
     }
   };
 
-  // Escolher imagem - VERSÃO WEB COMPATÍVEL
+  // selecionar imagem da galeria
   const handlePickImage = async () => {
     try {
-      console.log('Abrindo seletor de imagem...');
-      console.log('Plataforma:', Platform.OS);
-
-      // No web, usar input file nativo
       if (isWeb) {
         return new Promise((resolve) => {
           const input = document.createElement('input');
@@ -108,32 +81,22 @@ const DiarioScreen = ({ navigation, route }) => {
             const file = event.target.files[0];
             if (file) {
               const reader = new FileReader();
-              
               reader.onload = (e) => {
                 const base64 = e.target.result;
-                console.log('📸 Imagem selecionada (web):', {
-                  fileName: file.name,
-                  fileSize: file.size,
-                  type: file.type
-                });
-                
                 setNewEntryImage(base64);
                 setImageAddedMessage('Foto adicionada! Pronto para salvar.');
               };
-              
               reader.readAsDataURL(file);
             }
           };
-          
           input.click();
         });
       }
 
-      // Para mobile
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (status !== 'granted') {
-        Alert.alert('Permissão necessária', 'Precisamos de acesso à sua galeria para adicionar imagens.');
+        Alert.alert('Permissão necessária', 'Precisamos de acesso à sua galeria.');
         return;
       }
 
@@ -145,31 +108,21 @@ const DiarioScreen = ({ navigation, route }) => {
         base64: true,
       });
 
-      console.log('Resultado do ImagePicker:', result);
-
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedImage = result.assets[0];
         const imageUri = selectedImage.base64 ? `data:image/jpeg;base64,${selectedImage.base64}` : selectedImage.uri;
         
         setNewEntryImage(imageUri);
         setImageAddedMessage('Foto adicionada! Pronto para salvar.');
-        
-      } else {
-        console.log('Seleção de imagem cancelada pelo usuário');
-        setImageAddedMessage('');
       }
     } catch (error) {
-      console.error('Erro ao selecionar imagem:', error);
-      Alert.alert('Erro', 'Não foi possível acessar a galeria. Tente novamente.');
+      Alert.alert('Erro', 'Não foi possível acessar a galeria.');
     }
   };
 
-  // Upload de imagem - VERSÃO WEB (usando base64)
+  // upload de imagem para web
   const uploadImageWeb = async (base64Data) => {
     try {
-      console.log('📤 Enviando imagem (web)...');
-      
-      // Extrair apenas a parte base64
       const base64Content = base64Data.split(',')[1];
       const mimeType = base64Data.split(';')[0].split(':')[1];
       
@@ -186,27 +139,21 @@ const DiarioScreen = ({ navigation, route }) => {
         }),
       });
 
-      console.log('📨 Status do upload (web):', response.status);
-      
       const result = await response.json();
-      console.log('📄 Resultado do upload (web):', result);
 
       if (!response.ok) {
-        throw new Error(result.message || `Upload falhou com status: ${response.status}`);
+        throw new Error(result.message || 'Upload falhou');
       }
 
       return result;
     } catch (error) {
-      console.error('❌ Erro no upload (web):', error);
       throw error;
     }
   };
 
-  // Upload de imagem - VERSÃO MOBILE (usando FormData)
+  // upload de imagem para mobile
   const uploadImageMobile = async (imageUri) => {
     try {
-      console.log('📤 Enviando imagem (mobile)...');
-      
       const formData = new FormData();
       formData.append('image', {
         uri: imageUri,
@@ -218,24 +165,20 @@ const DiarioScreen = ({ navigation, route }) => {
         method: 'POST',
         body: formData,
       });
-
-      console.log('📨 Status do upload (mobile):', response.status);
       
       const result = await response.json();
-      console.log('📄 Resultado do upload (mobile):', result);
 
       if (!response.ok) {
-        throw new Error(result.message || `Upload falhou com status: ${response.status}`);
+        throw new Error(result.message || 'Upload falhou');
       }
 
       return result;
     } catch (error) {
-      console.error('❌ Erro no upload (mobile):', error);
       throw error;
     }
   };
 
-  // Validar formulário antes de salvar
+  // validar formulário antes de salvar
   const validateForm = () => {
     if (newEntryText.trim() === '') {
       setValidationError('Por favor, escreva algo sobre seu dia.');
@@ -251,65 +194,42 @@ const DiarioScreen = ({ navigation, route }) => {
     return true;
   };
 
-  // Salvar entrada - VERSÃO COMPATÍVEL COM WEB E MOBILE
+  // salvar entrada no diário
   const handleSaveEntry = async () => {
-    console.log('Iniciando salvamento da entrada...');
-    console.log('Plataforma:', Platform.OS);
-    console.log('Texto:', newEntryText);
-    console.log('Humor:', selectedMood);
-    console.log('Imagem disponível:', !!newEntryImage);
-
-    // Validar formulário
     if (!validateForm()) {
       return;
     }
 
     let finalImageUrl = null;
     
-    // Upload da imagem se existir
     if (newEntryImage) {
-      console.log('🖼️ Iniciando upload da imagem...');
-      
       try {
         let uploadResult;
 
         if (isWeb) {
-          // No web, usar base64
           uploadResult = await uploadImageWeb(newEntryImage);
         } else {
-          // No mobile, usar FormData
           uploadResult = await uploadImageMobile(newEntryImage);
         }
 
         if (uploadResult.success && uploadResult.imageUrl) {
           finalImageUrl = uploadResult.imageUrl;
-          console.log('✅ Upload bem-sucedido! URL:', finalImageUrl);
         } else {
-          throw new Error(uploadResult.message || 'URL da imagem não retornada');
+          throw new Error('URL da imagem não retornada');
         }
 
       } catch (error) {
-        console.error('❌ Erro no upload:', error);
-        Alert.alert(
-          'Aviso', 
-          `Não foi possível enviar a imagem: ${error.message}. A entrada será salva sem imagem.`
-        );
+        Alert.alert('Aviso', 'A entrada será salva sem imagem.');
       }
-    } else {
-      console.log('📭 Nenhuma imagem para upload');
     }
 
-    // Salvar dados do diário
     try {
-      console.log('💾 Salvando entrada no diário...');
       const saveData = {
         userId: parseInt(userId),
         mood: selectedMood.name,
         entryText: newEntryText,
         imageUrl: finalImageUrl,
       };
-
-      console.log('📦 Dados para salvar:', saveData);
 
       const response = await fetch(`${API_URL}/diary/save`, {
         method: 'POST',
@@ -318,11 +238,8 @@ const DiarioScreen = ({ navigation, route }) => {
         },
         body: JSON.stringify(saveData),
       });
-
-      console.log('📊 Status do salvamento:', response.status);
       
       const result = await response.json();
-      console.log('📝 Resultado do salvamento:', result);
       
       if (!response.ok) {
         throw new Error(result.message || 'Erro ao salvar anotação.');
@@ -330,7 +247,6 @@ const DiarioScreen = ({ navigation, route }) => {
 
       Alert.alert('Sucesso!', 'Entrada salva com sucesso!');
       
-      // Resetar o formulário
       setNewEntryText('');
       setNewEntryImage(null);
       setSelectedMood(null);
@@ -339,11 +255,7 @@ const DiarioScreen = ({ navigation, route }) => {
       setShowList(true);
       
     } catch (error) {
-      console.error('💥 Erro ao salvar entrada:', error);
-      Alert.alert(
-        'Erro', 
-        error.message || 'Não foi possível salvar a entrada. Verifique a conexão com o servidor.'
-      );
+      Alert.alert('Erro', 'Não foi possível salvar a entrada.');
     }
   };
 
@@ -351,7 +263,7 @@ const DiarioScreen = ({ navigation, route }) => {
     setExpandedEntryId(expandedEntryId === id ? null : id);
   };
 
-  // Formulário de nova entrada
+  // formulário de nova entrada
   const renderDiaryForm = () => (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient colors={['#d1e4ff', '#c4d8f2']} style={styles.background}>
@@ -371,7 +283,8 @@ const DiarioScreen = ({ navigation, route }) => {
             contentContainerStyle={styles.formScrollContent}
             showsVerticalScrollIndicator={true}
             keyboardShouldPersistTaps="handled"
-          >
+            alwaysBounceVertical={true}
+          >   
             <View style={styles.formContainer}>
               <Text style={styles.formTitle}>O que aconteceu hoje?</Text>
               <Text style={styles.formDate}>{new Date().toLocaleDateString('pt-BR')}</Text>
@@ -444,13 +357,13 @@ const DiarioScreen = ({ navigation, route }) => {
               
               <View style={styles.bottomSpacer} />
             </View>
-          </ScrollView>
+            </ScrollView>
         </KeyboardAvoidingView>
       </LinearGradient>
     </SafeAreaView>
   );
 
-  // Lista de entradas
+  // lista de entradas existentes
   const renderDiaryList = () => (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient colors={['#d1e4ff', '#c4d8f2']} style={styles.background}>
@@ -468,6 +381,7 @@ const DiarioScreen = ({ navigation, route }) => {
             <ScrollView 
               contentContainerStyle={styles.listContent} 
               showsVerticalScrollIndicator={true}
+              alwaysBounceVertical={true}
             >
               {entries.length > 0 ? (
                 entries.map((entry) => (
@@ -533,7 +447,6 @@ const styles = StyleSheet.create({
   keyboardAvoid: {
     flex: 1,
   },
-  // HEADER - MENOR E CENTRALIZADO
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -565,7 +478,6 @@ const styles = StyleSheet.create({
   headerPlaceholder: {
     width: 30,
   },
-  // LISTA DE ENTRADAS
   mainContent: {
     flex: 1,
     paddingTop: 20,
@@ -673,12 +585,12 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  // FORMULÁRIO
   formScrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 40,
+    height: 350,
   },
   formContainer: {
     alignItems: 'center',
@@ -713,7 +625,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     minHeight: 140,
     marginBottom: 20,
-    width: '100%',
+    width: '300%',
   },
   moodContainer: {
     flexDirection: 'row',

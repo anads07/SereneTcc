@@ -1,27 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  Animated,
-  Dimensions,
-  Easing,
-  Modal,
-  Platform,
-} from 'react-native';
+import {View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Animated, Dimensions, Easing, Modal, Platform,} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Obter dimensões da tela
 const { width, height } = Dimensions.get('window');
 
-// ====== DADOS ======
-
-// Lista completa de recomendações
+// dados das recomendações
 const todasRecomendacoes = [
   {
     title: 'Respiração Profunda',
@@ -261,7 +245,7 @@ const todasRecomendacoes = [
   },
 ];
 
-// Frases aleatórias para os balões de conversa
+// frases para os balões de conversa
 const frasesBalao1 = [
   'Hora de dar uma pausa e respirar fundo 🌿',
   'Um momento só para você! Que tal relaxar?',
@@ -288,38 +272,36 @@ const frasesBalao2 = [
   'Dedique alguns minutos para se sentir melhor 💖',
 ];
 
-// ====== COMPONENTE PRINCIPAL ======
 const RecomendacoesScreen = () => {
   const navigation = useNavigation();
 
-  // Estados principais
+  // estados da tela
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [displayedRecommendations, setDisplayedRecommendations] = useState([]);
   const [balao1Phrase, setBalao1Phrase] = useState('');
   const [balao2Phrase, setBalao2Phrase] = useState('');
   const [selectedRecommendation, setSelectedRecommendation] = useState(null);
 
-  // Valores de animação
+  // animações
   const balao1Anim = useRef(new Animated.Value(0)).current;
   const balao2Anim = useRef(new Animated.Value(0)).current;
   const okButtonAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
-  // ====== useEffect para inicialização ======
   useEffect(() => {
-    // Seleciona frases aleatórias para balões
+    // seleciona frases aleatórias
     const randomPhrase1 = frasesBalao1[Math.floor(Math.random() * frasesBalao1.length)];
     const randomPhrase2 = frasesBalao2[Math.floor(Math.random() * frasesBalao2.length)];
     setBalao1Phrase(randomPhrase1);
     setBalao2Phrase(randomPhrase2);
 
-    // Seleciona 4 recomendações aleatórias
+    // seleciona 4 recomendações aleatórias
     const startIdx = Math.floor(Math.random() * 5) * 4;
     const selectedGroup = todasRecomendacoes.slice(startIdx, startIdx + 4);
     setDisplayedRecommendations(selectedGroup);
 
-    // Sequência de animação dos balões e botão OK
+    // animação sequencial dos elementos
     Animated.sequence([
       Animated.timing(balao1Anim, { toValue: 1, duration: 800, easing: Easing.ease, useNativeDriver: true }),
       Animated.timing(balao2Anim, { toValue: 1, duration: 800, easing: Easing.ease, delay: 500, useNativeDriver: true }),
@@ -327,8 +309,8 @@ const RecomendacoesScreen = () => {
     ]).start();
   }, []);
 
-  // ====== FUNÇÕES ======
   const handleOkPress = () => {
+    // mostra recomendações com animação
     setShowRecommendations(true);
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
@@ -340,7 +322,7 @@ const RecomendacoesScreen = () => {
     setSelectedRecommendation(item);
   };
 
-  // Item de recomendação
+  // componente de item de recomendação
   const RecommendationItem = ({ item }) => (
     <TouchableOpacity style={styles.activityCard} onPress={() => handleRecommendationPress(item)}>
       <Text style={styles.activityTitle}>{item.title}</Text>
@@ -349,11 +331,10 @@ const RecomendacoesScreen = () => {
     </TouchableOpacity>
   );
 
-  // ====== RENDER ======
   return (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient colors={['#e0f7fa', '#a2caff']} style={styles.background}>
-        {/* Header fixo */}
+        {/* cabeçalho fixo */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Image source={require('../assets/src/seta.png')} style={styles.backArrow} />
@@ -367,7 +348,7 @@ const RecomendacoesScreen = () => {
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
         >
-          {/* Balões de conversa */}
+          {/* balões de conversa */}
           <View style={styles.baloesContainer}>
             <Animated.View
               style={[styles.balaoContainer, { opacity: balao1Anim, transform: [{ rotate: '1deg' }] }]}
@@ -383,7 +364,7 @@ const RecomendacoesScreen = () => {
             </Animated.View>
           </View>
 
-          {/* Botão OK */}
+          {/* botão para mostrar recomendações */}
           {!showRecommendations && (
             <Animated.View style={[styles.okButtonContainer, { opacity: okButtonAnim }]}>
               <TouchableOpacity onPress={handleOkPress} style={styles.okButton}>
@@ -392,17 +373,17 @@ const RecomendacoesScreen = () => {
             </Animated.View>
           )}
 
-          {/* Lista de recomendações */}
+          {/* grid de recomendações */}
           {showRecommendations && (
             <Animated.View style={[styles.recommendationsContainer, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
               <View style={styles.gridContainer}>
-                {/* Primeira linha - 2 cards */}
+                {/* primeira linha */}
                 <View style={styles.row}>
                   {displayedRecommendations.slice(0, 2).map((item, index) => (
                     <RecommendationItem key={index} item={item} />
                   ))}
                 </View>
-                {/* Segunda linha - 2 cards */}
+                {/* segunda linha */}
                 <View style={styles.row}>
                   {displayedRecommendations.slice(2, 4).map((item, index) => (
                     <RecommendationItem key={index + 2} item={item} />
@@ -413,7 +394,7 @@ const RecomendacoesScreen = () => {
           )}
         </ScrollView>
 
-        {/* Modal da recomendação */}
+        {/* modal de detalhes da recomendação */}
         <Modal
           visible={!!selectedRecommendation}
           animationType="slide"
@@ -436,7 +417,6 @@ const RecomendacoesScreen = () => {
   );
 };
 
-// ====== ESTILOS ======
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -447,16 +427,15 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  // HEADER - UM POUQUINHO MAIOR
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#a2caff',
     width: '100%',
-    height: Platform.OS === 'ios' ? 85 : 75, // UM POUQUINHO MAIOR
+    height: Platform.OS === 'ios' ? 85 : 75, 
     justifyContent: 'space-between',
     paddingHorizontal: 15,
-    paddingTop: Platform.OS === 'ios' ? 15 : 8, // UM POUQUINHO MAIOR
+    paddingTop: Platform.OS === 'ios' ? 15 : 8, 
     borderBottomLeftRadius: 15,
     borderBottomRightRadius: 15,
   },
@@ -464,37 +443,37 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   backArrow: {
-    width: 32, // UM POUQUINHO MAIOR
-    height: 32, // UM POUQUINHO MAIOR
+    width: 32, 
+    height: 32, 
     resizeMode: 'contain',
     tintColor: 'white',
   },
   headerText: {
-    fontSize: width > 400 ? 24 : 22, // UM POUQUINHO MAIOR
+    fontSize: width > 400 ? 24 : 22, 
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
     fontFamily: 'Bree-Serif',
   },
   headerPlaceholder: {
-    width: 32, // UM POUQUINHO MAIOR
+    width: 32,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingTop: 20, // ZERO para ficar colado
+    paddingTop: 20,
     paddingBottom: 15,
   },
   baloesContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: -5, // NEGATIVO para subir mais
+    marginTop: -5, 
     marginBottom: 10,
   },
   balaoContainer: {
-    marginVertical: -60, // MAIS NEGATIVO para aproximar os balões
-    width: width * 0.88, // MAIOR
+    marginVertical: -60, 
+    width: width * 0.88, 
     aspectRatio: 1.5,
     position: 'relative',
     justifyContent: 'center',
@@ -510,15 +489,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     textAlign: 'center',
     width: '70%',
-    fontSize: width > 400 ? 20 : 18, // MAIOR
+    fontSize: width > 400 ? 20 : 18, 
     color: 'white',
-    padding: 12, // MAIOR
+    padding: 12, 
     fontFamily: 'Bree-Serif',
     fontWeight: 'bold',
-    lineHeight: 22, // MAIOR
+    lineHeight: 22, 
   },
   okButtonContainer: {
-    marginTop: -10, // NEGATIVO para subir mais
+    marginTop: -10, 
     marginBottom: 5,
   },
   okButton: {
@@ -543,7 +522,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 10,
-    marginTop: 0, // ZERO para ficar mais próximo
+    marginTop: 0, 
   },
   gridContainer: {
     width: '100%',

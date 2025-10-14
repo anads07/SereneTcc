@@ -4,9 +4,9 @@ import { PieChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient'; 
 
 const screenWidth = Dimensions.get('window').width;
-const API_URL = 'http://172.30.32.1:3000'; // Substitua pelo seu IP
+const API_URL = 'http://192.168.0.1:3000'; 
 
-// Frases motivacionais para o post-it
+// frases motivacionais para o post-it
 const frases = [
   'Você é mais forte do que imagina. Cada dia é uma nova chance para seguir em frente.',
   'Seu esforço está construindo um futuro incrível.',
@@ -25,7 +25,6 @@ const frases = [
   'Você é capaz de coisas incríveis.'
 ];
 
-// Mapeamento de humor para cores e nomes do gráfico
 const moods = [
   { name: 'Estressado', type: 'estressado', color: '#e52b17' },
   { name: 'Magoado', type: 'magoado', color: '#ff9900' },
@@ -39,19 +38,14 @@ const RelatorioScreen = ({ navigation, route }) => {
   const [frase, setFrase] = useState('');
   const [humorData, setHumorData] = useState([]);
   
-  // NOVO ESTADO: Controla se o registro de humor já foi feito hoje
   const [hasRegisteredToday, setHasRegisteredToday] = useState(false);
-
-  // NOVO: Função para verificar se o humor já foi registrado hoje
   const checkDailyRegistration = async () => {
     try {
-      // Chama a rota no backend que checa o registro diário por userId
       const response = await fetch(`${API_URL}/mood/hasRegisteredToday/${userId}`);
       if (!response.ok) {
         return;
       }
       const data = await response.json();
-      // O backend retorna { registered: true/false }
       if (data.registered) {
           setHasRegisteredToday(true); 
       }
@@ -60,7 +54,6 @@ const RelatorioScreen = ({ navigation, route }) => {
     }
   };
 
-  // Função para buscar os dados de humor do servidor
   const fetchHumorData = async () => {
     try {
       const response = await fetch(`${API_URL}/mood/getReport/${userId}`);
@@ -69,7 +62,6 @@ const RelatorioScreen = ({ navigation, route }) => {
       }
       const data = await response.json();
 
-      // Mapeia os dados do banco para o formato do PieChart
       const formattedData = data.map(item => {
         const mood = moods.find(m => m.type === item.mood_type);
         return {
@@ -88,20 +80,17 @@ const RelatorioScreen = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    // Escolhe uma frase aleatória na primeira renderização
+    // escolhe uma frase aleatória na primeira renderização
     const randomIndex = Math.floor(Math.random() * frases.length);
     setFrase(frases[randomIndex]);
 
-    // Busca os dados do servidor
     fetchHumorData();
     
-    // Checa o registro diário
     checkDailyRegistration(); 
   }, []);
 
-  // Função para registrar o humor no servidor (Lógica de limite diário melhorada)
+  // função para registrar o humor no servidor
   const registrarHumor = async (moodType) => {
-    // 1. Verificação de UX (evita chamada desnecessária)
     if (hasRegisteredToday) {
       Alert.alert('Atenção', 'Você já registrou seu humor hoje. Volte amanhã!');
       return;
@@ -117,22 +106,18 @@ const RelatorioScreen = ({ navigation, route }) => {
       });
 
       if (!response.ok) {
-        // Se o backend retornar 409 Conflict, é porque já registrou
         if (response.status === 409) {
             const errorData = await response.json();
             Alert.alert('Atenção', errorData.message || 'Você já registrou seu humor hoje.');
-            setHasRegisteredToday(true); // Desabilita mesmo que o backend já tenha feito o check
+            setHasRegisteredToday(true); 
             return;
         }
-
-        // Para outros erros
         const errorData = await response.json();
         throw new Error(errorData.message || 'Falha ao salvar o humor.');
       }
-
-      // Após salvar, atualiza o estado e os dados
+      // após salvar, atualiza o estado e os dados
       Alert.alert('Sucesso!', 'Seu humor foi registrado com sucesso!');
-      setHasRegisteredToday(true); // Desabilita os botões após o sucesso
+      setHasRegisteredToday(true); 
       fetchHumorData();
 
     } catch (error) {
@@ -155,7 +140,6 @@ const RelatorioScreen = ({ navigation, route }) => {
           contentContainerStyle={styles.scrollContent}
           style={styles.scrollView}
         >
-          {/* CABEÇALHO */}
           <View style={styles.header}>
             <TouchableOpacity
               onPress={handleBack}
@@ -170,7 +154,7 @@ const RelatorioScreen = ({ navigation, route }) => {
             </View>
           </View>
 
-          {/* EMOÇÕES (BOTÕES DESABILITADOS SE JÁ REGISTROU) */}
+          {/* emoções */}
           <View style={styles.emotionsContainer}>
             <TouchableOpacity 
               onPress={() => registrarHumor('estressado')} 
@@ -208,18 +192,12 @@ const RelatorioScreen = ({ navigation, route }) => {
               <Image source={require('../assets/src/muitofeliz.png')} style={styles.emoji} />
             </TouchableOpacity>
           </View>
-          
-          {/* MENSAGEM DE AVISO CONDIOCIONAL */}
           {hasRegisteredToday && (
             <Text style={styles.dailyLimitMessage}>
               Seu humor já foi registrado hoje. Volte amanhã!
             </Text>
           )}
-
-          {/* Barra de separação */}
           <Image source={require('../assets/src/barra.png')} style={styles.barra} />
-
-          {/* POST-IT COM SOMBRA */}
           <View style={styles.postitContainer}>
             <Image
               source={require('../assets/src/postit.png')}
@@ -241,7 +219,7 @@ const RelatorioScreen = ({ navigation, route }) => {
             </ImageBackground>
           </View>
 
-          {/* RESUMO SEMANAL (GRÁFICO) */}
+          {/* grafico do resumo semanal */}
           <View style={styles.resumoContainer}>
             <Text style={styles.resumoText}>RESUMO SEMANAL</Text>
             {humorData.length > 0 ? (
@@ -293,7 +271,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 20, // Removi o Platform temporariamente
+    paddingTop: 20,
     paddingBottom: 5,
     width: '100%',
     paddingHorizontal: 10,
