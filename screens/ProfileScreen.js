@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { width, height } = Dimensions.get('window');
 const FONT_BASE_SIZE = height * 0.022;
 const CONTENT_MAX_WIDTH = 500;
-const API_URL = 'http://192.168.0.1:3000';
+const API_URL = 'http://172.27.160.1:3000';
 
 const backArrowImage = require('../assets/src/seta.png');
 const logoImage = require('../assets/src/logoimg.png');

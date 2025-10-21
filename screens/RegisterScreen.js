@@ -19,7 +19,7 @@ const RegisterScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const API_URL = 'http://192.168.0.1:3000'; 
+  const API_URL = 'http://172.27.160.1:3000'; 
 
   // valida os campos do formulário
   const validateForm = () => {
@@ -217,15 +217,15 @@ const styles = StyleSheet.create({
   formArea: {
     width: '85%', 
     paddingHorizontal: width * 0.05, 
-    paddingVertical: height * 0.04,
-    backgroundColor: 'rgba(255, 255, 255, 0.42)',  
+    paddingVertical: height * 0.04, 
+    backgroundColor: 'rgba(255, 255, 255, 0.)', 
     borderRadius: 25, 
     alignItems: 'center',
     elevation: 10,
-    shadowColor: '#64a1e6', 
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
+    // shadowColor: '#64a1e6', 
+    // shadowOffset: { width: 0, height: 4 },
+    // shadowOpacity: 0.3,
+    // shadowRadius: 5,
   },
   tabContainer: {
     flexDirection: 'row',

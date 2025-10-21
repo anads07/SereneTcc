@@ -17,7 +17,7 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const API_URL = 'http://192.168.0.1:3000';
+  const API_URL = 'http://172.27.160.1:3000';
 
   // valida os campos de email e senha
   const validateForm = () => {

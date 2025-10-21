@@ -5,7 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
-const API_URL = 'http://192.168.0.1:3000';
+const API_URL = 'http://172.27.160.1:3000';
 
 const moods = [
   { name: 'Feliz', icon: 'happy-outline', color: '#a1bce2' },
