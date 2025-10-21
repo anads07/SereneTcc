@@ -1,30 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, ActivityIndicator, Animated,SafeAreaView,ScrollView,Dimensions, } from 'react-native';
+import { StyleSheet, View, Text, Image, ActivityIndicator, Animated, SafeAreaView, ScrollView, Dimensions, } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
-import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
-const FONT_BASE_SIZE = width * 0.055; // tamanho de fonte responsivo
+const FONT_BASE_SIZE = width * 0.055;
 
 const logoImage = require('../assets/src/logo.png');
-const apresentacaoImage = require('../assets/src/apresentacao.png');
 
 const ApresentacaoScreen = ({ navigation }) => {
   const [fontsLoaded] = useFonts({
     'Bree-Serif': require('../assets/fonts/BreeSerif-Regular.ttf'),
   });
 
-  const [fadeAnim] = useState(new Animated.Value(0));
+  const [logoOpacity] = useState(new Animated.Value(0));
+  const [textOpacity] = useState(new Animated.Value(0));
 
   useEffect(() => {
-    // animação de entrada suave
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1500,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
+    if (fontsLoaded) {
+      Animated.timing(logoOpacity, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }).start(() => {
+        Animated.timing(logoOpacity, {
+          toValue: 0,
+          duration: 500,
+          delay: 2000,
+          useNativeDriver: true,
+        }).start(() => {
+          Animated.timing(textOpacity, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }).start(() => {
+            setTimeout(() => {
+              navigation.navigate('Login');
+            }, 2000);
+          });
+        });
+      });
+    }
+  }, [fontsLoaded, logoOpacity, textOpacity, navigation]);
 
   if (!fontsLoaded) {
     return (
@@ -43,47 +60,20 @@ const ApresentacaoScreen = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.container}>
             
-            <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-              <View style={styles.logoContainer}>
-                <Image
-                  source={logoImage}
-                  style={styles.logo}
-                  accessibilityLabel="Logo do aplicativo Serene"
-                />
-              </View>
-              
-              <View style={styles.illustrationContainer}>
-                <Image
-                  source={apresentacaoImage}
-                  style={styles.illustration}
-                  accessibilityLabel="Ilustração de apresentação"
-                />
-              </View>
-
-              <View style={styles.textContainer}>
-                <Text style={styles.text}>
-                TRANSFORME SUA MENTE.
-                  {/* Transforme sua mente., cuide de sua alma: juntos, podemos construir um caminho para o bem-estar mental. */}
-                </Text>
-              </View>
+            <Animated.View style={[styles.logoContainer, { opacity: logoOpacity }]}>
+              <Image
+                source={logoImage}
+                style={styles.logo}
+                accessibilityLabel="Logo do aplicativo Serene"
+              />
+            </Animated.View>
+            
+            <Animated.View style={[styles.textContainer, { opacity: textOpacity }]}>
+              <Text style={styles.text}>
+                TRANSFORME A SUA MENTE
+              </Text>
             </Animated.View>
 
-            {/* botão para próxima tela */}
-            <View style={styles.arrowButton}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Login')}
-                accessible={true}
-                accessibilityLabel="Próxima tela"
-                accessibilityRole="button"
-              >
-                <Ionicons 
-                  name="arrow-forward-circle" 
-                  size={height * 0.08}
-                  color="#0c4793" 
-                  style={styles.arrowIcon} 
-                />
-              </TouchableOpacity>
-            </View>
           </View>
         </ScrollView>
       </LinearGradient>
@@ -102,11 +92,11 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center', 
+    alignItems: 'center', 
   },
   container: {
     flex: 1,
-    paddingHorizontal: 20, 
-    paddingTop: height * 0.05, 
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -116,53 +106,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
-  content: {
-    justifyContent: 'center', 
-    alignItems: 'center',
-    width: '100%',
-    paddingVertical: height * 0.04, 
-  },
   logoContainer: {
-    marginBottom: height * 0.03,
-  },
-  illustrationContainer: {
-    marginBottom: height * 0.03,
-    justifyContent: 'center',
+    position: 'absolute',
     alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
   },
   textContainer: {
-    marginTop: 0, 
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
   },
   logo: {
-    width: width * 0.4,
-    height: width * 0.15,
-    resizeMode: 'contain',
-  },
-  illustration: {
-    width: width * 0.75,
-    height: height * 0.4, 
-    maxHeight: 350, 
+    width: width * 3, 
+    height: width * 0.9, 
     resizeMode: 'contain',
   },
   text: {
     fontFamily: 'Bree-Serif',
     fontSize: FONT_BASE_SIZE > 24 ? 24 : FONT_BASE_SIZE, 
     color: '#0c4793',
-    marginHorizontal: 40,
+    marginHorizontal: 30, 
     lineHeight: FONT_BASE_SIZE * 1.4,
     textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  arrowButton: {
-    position: 'absolute',
-    bottom: height * 0.05,
-    right: width * 0.05,
-    zIndex: 10, 
-  },
-  arrowIcon: {
-    textShadowColor: '#001a4d',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 6,
+    fontWeight: 'bold', 
   },
 });
 

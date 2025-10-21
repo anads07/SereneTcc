@@ -21,7 +21,6 @@ const RegisterScreen = ({ navigation }) => {
   const [errors, setErrors] = useState({});
   const API_URL = 'http://172.27.160.1:3000'; 
 
-  // valida os campos do formulário
   const validateForm = () => {
     const newErrors = {};
     if (!username) newErrors.username = 'Nome de usuário é obrigatório';
@@ -33,7 +32,6 @@ const RegisterScreen = ({ navigation }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // realiza o cadastro chamando a API
   const handleRegister = async () => {
     if (!validateForm()) return;
 
@@ -49,7 +47,7 @@ const RegisterScreen = ({ navigation }) => {
 
       if (response.ok) {
         Alert.alert('Sucesso', 'Cadastro realizado com sucesso! Faça login.');
-        navigation.navigate('Login'); // navega para login
+        navigation.navigate('Login');
       } else {
         Alert.alert('Erro no Cadastro', data.message || 'Erro ao tentar registrar. Tente outro email.');
       }
@@ -81,19 +79,7 @@ const RegisterScreen = ({ navigation }) => {
 
             <View style={styles.formArea}>
 
-              <View style={styles.tabContainer}>
-                <TouchableOpacity
-                  style={styles.inactiveTabButton}
-                  onPress={() => navigation.navigate('Login')} // navega para login
-                >
-                  <Text style={styles.inactiveTabText}>ENTRAR</Text>
-                </TouchableOpacity>
-                
-                <View style={styles.activeTabButton}>
-                  <Text style={styles.activeTabText}>CADASTRAR</Text>
-                </View>
-              </View>
-
+              {/* Input Nome de Usuário */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={userIcon} style={styles.inputIcon} />
@@ -110,6 +96,7 @@ const RegisterScreen = ({ navigation }) => {
               </View>
               {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
 
+              {/* Input Email */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={emailIcon} style={styles.inputIcon} />
@@ -127,6 +114,7 @@ const RegisterScreen = ({ navigation }) => {
               </View>
               {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
+              {/* Input Senha */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={senhaIcon} style={styles.inputIcon} />
@@ -143,6 +131,7 @@ const RegisterScreen = ({ navigation }) => {
               </View>
               {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
+              {/* Botão CADASTRAR */}
               <TouchableOpacity
                 style={styles.button}
                 onPress={handleRegister}
@@ -160,6 +149,17 @@ const RegisterScreen = ({ navigation }) => {
             </View>
           </View>
         </ScrollView>
+        
+        {/* Abas - Movidas para o rodapé e simplificadas */}
+        <View style={styles.tabContainerBottom}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Text style={styles.inactiveTabTextBottom}>Entrar</Text>
+          </TouchableOpacity>
+          <Text style={styles.activeTabTextBottom}>Cadastrar</Text>
+        </View>
+
       </LinearGradient>
     </SafeAreaView>
   );
@@ -184,19 +184,20 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     width: width, 
     alignItems: 'center',
-    justifyContent: 'center', 
+    justifyContent: 'flex-start',
     paddingVertical: height * 0.05, 
   },
   contentWrapper: {
     width: '100%', 
     alignItems: 'center',
+    marginTop: height * 0.15, // ABAIXADO: 15% da altura da tela
   },
   
   headerContainer: {
     width: '85%', 
     alignItems: 'flex-start', 
     paddingHorizontal: 5, 
-    marginBottom: height * 0.03,
+    marginBottom: height * 0.08,
   },
   greetingText: { 
     fontFamily: 'Bree-Serif', 
@@ -222,41 +223,9 @@ const styles = StyleSheet.create({
     borderRadius: 25, 
     alignItems: 'center',
     elevation: 10,
-    // shadowColor: '#64a1e6', 
-    // shadowOffset: { width: 0, height: 4 },
-    // shadowOpacity: 0.3,
-    // shadowRadius: 5,
   },
-  tabContainer: {
-    flexDirection: 'row',
-    width: '100%',
-    marginBottom: height * 0.04, 
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  activeTabButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 3,
-    borderBottomColor: '#0c4793',
-  },
-  inactiveTabButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  activeTabText: {
-    color: '#0c4793', 
-    fontWeight: 'bold',
-    fontSize: width * 0.045, 
-  },
-  inactiveTabText: {
-    color: '#64a1e6', 
-    fontWeight: 'bold',
-    fontSize: width * 0.045, 
-  },
-
+  
+  // Estilos de Input copiados do LoginScreen
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -298,25 +267,44 @@ const styles = StyleSheet.create({
     fontSize: width * 0.035,
     fontWeight: '500',
   }, 
+  
+  // Botão ajustado para o texto "CADASTRAR"
   button: {
     backgroundColor: '#0c4793', 
     borderRadius: 15,
     paddingVertical: height * 0.018,
     width: '100%',
     alignItems: 'center',
-    marginTop: height * 0.03, 
-    marginBottom: height * 0.02,
+    marginTop: height * 0.04, 
     elevation: 5,
-    shadowColor: '#64a1e6', 
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.7,
-    shadowRadius: 5,
   },
   buttonText: {
     fontFamily: 'Bree-Serif',
     color: '#fff',
     fontSize: width * 0.05,
     fontWeight: 'bold',
+  },
+  
+  tabContainerBottom: {
+    flexDirection: 'row',
+    width: '60%', 
+    justifyContent: 'space-around',
+    marginBottom: height * 0.05, 
+    paddingTop: 10,
+    position: 'absolute', 
+    bottom: 0,
+  },
+  activeTabTextBottom: {
+    color: '#0c4793', 
+    fontWeight: 'bold',
+    fontSize: width * 0.05,
+    fontFamily: 'Bree-Serif',
+  },
+  inactiveTabTextBottom: {
+    color: '#64a1e6', 
+    fontWeight: 'bold',
+    fontSize: width * 0.05,
+    fontFamily: 'Bree-Serif',
   },
 });
 

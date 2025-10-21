@@ -5,7 +5,7 @@ import { useFonts } from 'expo-font';
 
 const { width, height } = Dimensions.get('window');
 
-const emailIcon = require('../assets/src/user.png');
+const emailIcon = require('../assets/src/user.png'); 
 const senhaIcon = require('../assets/src/senha.png');
 
 const LoginScreen = ({ navigation }) => {
@@ -19,7 +19,7 @@ const LoginScreen = ({ navigation }) => {
   const [errors, setErrors] = useState({});
   const API_URL = 'http://172.27.160.1:3000';
 
-  // valida os campos de email e senha
+  
   const validateForm = () => {
     const newErrors = {};
     if (!email) newErrors.email = 'Email é obrigatório';
@@ -29,7 +29,7 @@ const LoginScreen = ({ navigation }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // realiza o login chamando a API
+  
   const handleLogin = async () => {
     if (!validateForm()) return;
 
@@ -82,19 +82,6 @@ const LoginScreen = ({ navigation }) => {
 
             <View style={styles.formArea}>
 
-              <View style={styles.tabContainer}>
-                <View style={styles.activeTabButton}>
-                  <Text style={styles.activeTabText}>ENTRAR</Text>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.inactiveTabButton}
-                  onPress={() => navigation.navigate('Register')}
-                >
-                  <Text style={styles.inactiveTabText}>CADASTRAR</Text>
-                </TouchableOpacity>
-              </View>
-
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={emailIcon} style={styles.inputIcon} />
@@ -138,13 +125,23 @@ const LoginScreen = ({ navigation }) => {
                 {loading ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={styles.buttonText}>ENTRAR</Text>
+                  <Text style={styles.buttonText}>LOGIN</Text>
                 )}
               </TouchableOpacity>
 
             </View>
           </View>
         </ScrollView>
+        
+        <View style={styles.tabContainerBottom}>
+          <Text style={styles.activeTabTextBottom}>Entrar</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Register')}
+          >
+            <Text style={styles.inactiveTabTextBottom}>Cadastrar</Text>
+          </TouchableOpacity>
+        </View>
+
       </LinearGradient>
     </SafeAreaView>
   );
@@ -165,24 +162,24 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
-  // centralização do conteúdo
   scrollContainer: {
     flexGrow: 1,
     width: width, 
     alignItems: 'center',
-    justifyContent: 'center', 
+    justifyContent: 'flex-start',
     paddingVertical: height * 0.05, 
   },
   contentWrapper: {
     width: '100%', 
     alignItems: 'center',
+    marginTop: height * 0.15, // ABAIXADO: 15% da altura da tela
   },
   
   headerContainer: {
-    width: '85%',
-    alignItems: 'flex-start',
+    width: '85%', 
+    alignItems: 'flex-start', 
     paddingHorizontal: 5, 
-    marginBottom: height * 0.03,
+    marginBottom: height * 0.08,
   },
   greetingText: {
     fontFamily: 'Bree-Serif', 
@@ -200,7 +197,6 @@ const styles = StyleSheet.create({
     fontWeight: '500', 
   },
   
-  // área do formulário
   formArea: {
     width: '85%', 
     paddingHorizontal: width * 0.05, 
@@ -209,40 +205,6 @@ const styles = StyleSheet.create({
     borderRadius: 25, 
     alignItems: 'center',
     elevation: 10,
-    // shadowColor: '#64a1e6', 
-    // shadowOffset: { width: 0, height: 4 },
-    // shadowOpacity: 0.3,
-    // shadowRadius: 5,
-  },
-  
-  tabContainer: {
-    flexDirection: 'row',
-    width: '100%',
-    marginBottom: height * 0.04, 
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  activeTabButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 3,
-    borderBottomColor: '#0c4793',
-  },
-  inactiveTabButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  activeTabText: {
-    color: '#fffff', 
-    fontWeight: 'bold',
-    fontSize: width * 0.045, 
-  },
-  inactiveTabText: {
-    color: '#64a1e6', 
-    fontWeight: 'bold',
-    fontSize: width * 0.045, 
   },
   
   inputContainer: {
@@ -290,22 +252,39 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: '#0c4793', 
     borderRadius: 15,
-    paddingVertical: height * 0.018, 
+    paddingVertical: height * 0.018,
     width: '100%',
     alignItems: 'center',
-    marginTop: height * 0.03, 
-    marginBottom: height * 0.02,
+    marginTop: height * 0.04,
     elevation: 5,
-    shadowColor: '#64a1e6', 
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.7,
-    shadowRadius: 5,
   },
   buttonText: {
-    fontFamily: 'Bree-Serif', 
+    fontFamily: 'Bree-Serif',
     color: '#fff',
     fontSize: width * 0.05,
     fontWeight: 'bold',
+  },
+  
+  tabContainerBottom: {
+    flexDirection: 'row',
+    width: '60%',
+    justifyContent: 'space-around',
+    marginBottom: height * 0.05,
+    paddingTop: 10,
+    position: 'absolute',
+    bottom: 0,
+  },
+  activeTabTextBottom: {
+    color: '#0c4793',
+    fontWeight: 'bold',
+    fontSize: width * 0.05,
+    fontFamily: 'Bree-Serif',
+  },
+  inactiveTabTextBottom: {
+    color: '#64a1e6',
+    fontWeight: 'bold',
+    fontSize: width * 0.05,
+    fontFamily: 'Bree-Serif',
   },
 });
 
