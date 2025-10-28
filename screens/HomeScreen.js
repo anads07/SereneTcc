@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -13,6 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons'; 
 import { PieChart } from 'react-native-chart-kit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -21,12 +22,12 @@ const screenHeight = Dimensions.get('window').height;
 // DADOS DE EMOÇÕES ATUALIZADOS COM NOVAS CORES
 // ----------------------------------------------------------------------
 const emotions = [
-    { name: 'Feliz', key: 'happy', icon: 'happy', color: '#FFF3B0', iconColor: '#D4AC0D' },
-    { name: 'Triste', key: 'sad', icon: 'sad', color: '#A7C7E7', iconColor: '#1E4A7A' },
-    { name: 'Estressado', key: 'stressed', icon: 'flash', color: '#F4A6A6', iconColor: '#A61E1E' },
-    { name: 'Calmo', key: 'calm', icon: 'leaf', color: '#B5EAD7', iconColor: '#1B6B3C' },
-    { name: 'Ansioso', key: 'anxious', icon: 'alert-circle', color: '#C8B6E2', iconColor: '#553C9A' },
-    { name: 'Confuso', key: 'confused', icon: 'help-circle', color: '#FFD6A5', iconColor: '#B45309' },
+  { name: 'Feliz', key: 'happy', icon: 'happy-outline', color: '#FFF3B0' },
+  { name: 'Triste', key: 'sad', icon: 'sad-outline', color: '#A7C7E7' },
+  { name: 'Estressado', key: 'stressed', icon: 'flash-outline', color: '#F4A6A6' },
+  { name: 'Calmo', key: 'calm', icon: 'leaf-outline', color: '#B5EAD7' },
+  { name: 'Ansioso', key: 'anxious', icon: 'alert-circle-outline', color: '#C8B6E2' },
+  { name: 'Confuso', key: 'confused', icon: 'help-circle-outline', color: '#FFD6A5' },
 ];
 
 // ----------------------------------------------------------------------
@@ -153,17 +154,8 @@ const getRecommendation = (emotionKey) => {
 };
 
 // ----------------------------------------------------------------------
-// DADOS DE GRÁFICO ATUALIZADOS COM NOVAS CORES
+// CONFIGURAÇÃO DO GRÁFICO
 // ----------------------------------------------------------------------
-const mockChartData = [
-    { name: 'Feliz', count: 15.2, color: '#FFF3B0', legendFontColor: '#7F7F7F', legendFontSize: screenWidth > 400 ? 14 : 10 },
-    { name: 'Triste', count: 9.1, color: '#A7C7E7', legendFontColor: '#7F7F7F', legendFontSize: screenWidth > 400 ? 14 : 10 },
-    { name: 'Estressado', count: 6.1, color: '#F4A6A6', legendFontColor: '#7F7F7F', legendFontSize: screenWidth > 400 ? 14 : 10 },
-    { name: 'Calmo', count: 30.3, color: '#B5EAD7', legendFontColor: '#7F7F7F', legendFontSize: screenWidth > 400 ? 14 : 10 },
-    { name: 'Ansioso', count: 25.4, color: '#C8B6E2', legendFontColor: '#7F7F7F', legendFontSize: screenWidth > 400 ? 14 : 10 },
-    { name: 'Confuso', count: 13.9, color: '#FFD6A5', legendFontColor: '#7F7F7F', legendFontSize: screenWidth > 400 ? 14 : 10 }
-];
-
 const chartConfig = {
     backgroundGradientFrom: "#fff",
     backgroundGradientTo: "#fff",
@@ -181,6 +173,90 @@ const HomeScreen = ({ navigation }) => {
   const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedTechnique, setSelectedTechnique] = useState(null);
+  const [chartData, setChartData] = useState([]);
+
+  // Buscar dados reais do AsyncStorage
+  const loadChartData = async () => {
+    try {
+      const existingStats = await AsyncStorage.getItem('emotionStatistics');
+      
+      if (existingStats) {
+        const stats = JSON.parse(existingStats);
+        
+        // Converter os dados para o formato do gráfico
+        const formattedData = [
+          { 
+            name: 'Feliz', 
+            count: stats.happy || 0, 
+            color: '#FFF3B0', 
+            legendFontColor: '#7F7F7F', 
+            legendFontSize: screenWidth > 400 ? 14 : 10 
+          },
+          { 
+            name: 'Triste', 
+            count: stats.sad || 0, 
+            color: '#A7C7E7', 
+            legendFontColor: '#7F7F7F', 
+            legendFontSize: screenWidth > 400 ? 14 : 10 
+          },
+          { 
+            name: 'Estressado', 
+            count: stats.stressed || 0, 
+            color: '#F4A6A6', 
+            legendFontColor: '#7F7F7F', 
+            legendFontSize: screenWidth > 400 ? 14 : 10 
+          },
+          { 
+            name: 'Calmo', 
+            count: stats.calm || 0, 
+            color: '#B5EAD7', 
+            legendFontColor: '#7F7F7F', 
+            legendFontSize: screenWidth > 400 ? 14 : 10 
+          },
+          { 
+            name: 'Ansioso', 
+            count: stats.anxious || 0, 
+            color: '#C8B6E2', 
+            legendFontColor: '#7F7F7F', 
+            legendFontSize: screenWidth > 400 ? 14 : 10 
+          },
+          { 
+            name: 'Confuso', 
+            count: stats.confused || 0, 
+            color: '#FFD6A5', 
+            legendFontColor: '#7F7F7F', 
+            legendFontSize: screenWidth > 400 ? 14 : 10 
+          }
+        ];
+        
+        setChartData(formattedData);
+      } else {
+        // Se não houver dados, usar dados iniciais zerados
+        const initialData = [
+          { name: 'Feliz', count: 0, color: '#FFF3B0', legendFontColor: '#7F7F7F', legendFontSize: screenWidth > 400 ? 14 : 10 },
+          { name: 'Triste', count: 0, color: '#A7C7E7', legendFontColor: '#7F7F7F', legendFontSize: screenWidth > 400 ? 14 : 10 },
+          { name: 'Estressado', count: 0, color: '#F4A6A6', legendFontColor: '#7F7F7F', legendFontSize: screenWidth > 400 ? 14 : 10 },
+          { name: 'Calmo', count: 0, color: '#B5EAD7', legendFontColor: '#7F7F7F', legendFontSize: screenWidth > 400 ? 14 : 10 },
+          { name: 'Ansioso', count: 0, color: '#C8B6E2', legendFontColor: '#7F7F7F', legendFontSize: screenWidth > 400 ? 14 : 10 },
+          { name: 'Confuso', count: 0, color: '#FFD6A5', legendFontColor: '#7F7F7F', legendFontSize: screenWidth > 400 ? 14 : 10 }
+        ];
+        setChartData(initialData);
+      }
+    } catch (error) {
+      console.log('Erro ao carregar dados do gráfico:', error);
+    }
+  };
+
+  // Carregar dados quando a tela for focada
+  useEffect(() => {
+    loadChartData();
+    
+    const focusListener = navigation.addListener('focus', () => {
+      loadChartData();
+    });
+
+    return focusListener;
+  }, [navigation]);
 
   const currentRecommendation = selectedEmotion 
     ? getRecommendation(selectedEmotion.key) 
@@ -287,17 +363,23 @@ const HomeScreen = ({ navigation }) => {
                     ]}
                     onPress={() => handleEmotionSelect(mood)}
                   >
-                    <Ionicons
-                      name={mood.icon}
-                      size={screenWidth > 400 ? 26 : screenWidth > 500 ? 30 : 22}
-                      color={selectedEmotion?.name === mood.name ? '#333' : mood.color}
+<Ionicons
+  name={mood.icon}
+  size={screenWidth > 400 ? 26 : screenWidth > 500 ? 30 : 22}
+  color={selectedEmotion?.name === mood.name ? '#000' : '#31356e'} 
                     />
-                    <Text style={[
-                      styles.moodText,
-                      selectedEmotion?.name === mood.name && { color: '#333', fontWeight: 'bold' }
-                    ]}>
-                      {mood.name}
-                    </Text>
+                   <Text style={[
+  styles.moodText,
+  selectedEmotion?.name === mood.name ? { 
+    color: '#000', // Preto quando selecionado
+    fontWeight: 'bold' 
+  } : {
+    color: '#31356e',
+    fontWeight: 'bold'  // #31356e quando não selecionado
+  }
+]}>
+  {mood.name}
+</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -308,18 +390,30 @@ const HomeScreen = ({ navigation }) => {
               <Text style={styles.chartTitle}>MEUS REGISTROS</Text>
               
               <View style={styles.chartInnerContainer}>
-                <PieChart
-                  data={mockChartData}
-                  width={screenWidth > 400 ? screenWidth * 0.8 : screenWidth * 0.85}
-                  height={screenWidth > 400 ? 220 : screenWidth > 500 ? 250 : 180}
-                  chartConfig={chartConfig}
-                  accessor={"count"}
-                  backgroundColor={"transparent"}
-                  paddingLeft={screenWidth > 400 ? "15" : "8"}
-                  center={[screenWidth > 400 ? 10 : 5, 0]}
-                  hasLegend={true}
-                  absolute
-                />
+                {chartData.length > 0 && chartData.some(item => item.count > 0) ? (
+                  <PieChart
+                    data={chartData}
+                    width={screenWidth > 400 ? screenWidth * 0.8 : screenWidth * 0.85}
+                    height={screenWidth > 400 ? 220 : screenWidth > 500 ? 250 : 180}
+                    chartConfig={chartConfig}
+                    accessor={"count"}
+                    backgroundColor={"transparent"}
+                    paddingLeft={screenWidth > 400 ? "15" : "8"}
+                    center={[screenWidth > 400 ? 10 : 5, 0]}
+                    hasLegend={true}
+                    absolute
+                  />
+                ) : (
+                  <View style={styles.emptyChartContainer}>
+                    <Ionicons name="stats-chart-outline" size={50} color="#ccc" />
+                    <Text style={styles.emptyChartText}>
+                      Nenhum registro ainda{'\n'}
+                      <Text style={styles.emptyChartSubtext}>
+                        Comece registrando suas emoções no diário!
+                      </Text>
+                    </Text>
+                  </View>
+                )}
               </View>
               
               <TouchableOpacity 
@@ -524,6 +618,24 @@ const styles = StyleSheet.create({
   chartInnerContainer: {
     alignItems: 'center',
     marginHorizontal: 10,
+  },
+  emptyChartContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    height: screenWidth > 400 ? 220 : 180,
+  },
+  emptyChartText: {
+    fontSize: screenWidth > 400 ? 16 : 14,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 10,
+    fontFamily: 'Bree-Serif',
+  },
+  emptyChartSubtext: {
+    fontSize: screenWidth > 400 ? 14 : 12,
+    color: '#999',
+    fontFamily: 'Bree-Serif',
   },
   viewNotesButton: {
     alignSelf: 'center',

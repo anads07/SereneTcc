@@ -6,7 +6,7 @@ import { useFonts } from 'expo-font';
 const { width, height } = Dimensions.get('window');
 const FONT_BASE_SIZE = width * 0.055;
 
-const logoImage = require('../assets/src/logo.png');
+const logoImage = require('../assets/src/perfil.png');
 
 const ApresentacaoScreen = ({ navigation }) => {
   const [fontsLoaded] = useFonts({
@@ -14,39 +14,75 @@ const ApresentacaoScreen = ({ navigation }) => {
   });
 
   const [logoOpacity] = useState(new Animated.Value(0));
+  const [sereneOpacity] = useState(new Animated.Value(0));
   const [textOpacity] = useState(new Animated.Value(0));
+  const [logoPosition] = useState(new Animated.Value(-100));
+  const [serenePosition] = useState(new Animated.Value(100));
 
   useEffect(() => {
     if (fontsLoaded) {
-      Animated.timing(logoOpacity, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }).start(() => {
+      // Animação da logo vindo da esquerda
+      Animated.parallel([
         Animated.timing(logoOpacity, {
-          toValue: 0,
-          duration: 500,
-          delay: 2000,
+          toValue: 1, // 1 = totalmente opaco
+          duration: 400,
           useNativeDriver: true,
-        }).start(() => {
-          Animated.timing(textOpacity, {
-            toValue: 1,
-            duration: 1000,
+        }),
+        Animated.timing(logoPosition, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        })
+      ]).start(() => {
+        // Animação do SERENE vindo da direita
+        Animated.parallel([
+          Animated.timing(sereneOpacity, {
+            toValue: 1, // 1 = totalmente opaco
+            duration: 400,
             useNativeDriver: true,
-          }).start(() => {
-            setTimeout(() => {
-              navigation.navigate('Login');
-            }, 2000);
-          });
+          }),
+          Animated.timing(serenePosition, {
+            toValue: 0,
+            duration: 400,
+            useNativeDriver: true,
+          })
+        ]).start(() => {
+          // Pausa para mostrar o logo + SERENE (ambos opacos)
+          setTimeout(() => {
+            // Fade out do logo + SERENE (só aqui ficam transparentes)
+            Animated.parallel([
+              Animated.timing(logoOpacity, {
+                toValue: 0, // 0 = transparente
+                duration: 300,
+                useNativeDriver: true,
+              }),
+              Animated.timing(sereneOpacity, {
+                toValue: 0, // 0 = transparente
+                duration: 300,
+                useNativeDriver: true,
+              })
+            ]).start(() => {
+              // Aparece a frase final
+              Animated.timing(textOpacity, {
+                toValue: 1, // 1 = totalmente opaco
+                duration: 500,
+                useNativeDriver: true,
+              }).start(() => {
+                setTimeout(() => {
+                  navigation.navigate('Login');
+                }, 1000);
+              });
+            });
+          }, 800);
         });
       });
     }
-  }, [fontsLoaded, logoOpacity, textOpacity, navigation]);
+  }, [fontsLoaded, logoOpacity, sereneOpacity, textOpacity, logoPosition, serenePosition, navigation]);
 
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0c4793" />
+        <ActivityIndicator size="large" color="#84a9da" />
       </View>
     );
   }
@@ -54,23 +90,45 @@ const ApresentacaoScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient
-        colors={['#fff', '#a4c4ff']}
+        colors={['#b9d2ff', '#d9e7ff', '#eaf3ff']}
         style={styles.background}
       >
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.container}>
             
-            <Animated.View style={[styles.logoContainer, { opacity: logoOpacity }]}>
-              <Image
-                source={logoImage}
-                style={styles.logo}
-                accessibilityLabel="Logo do aplicativo Serene"
-              />
-            </Animated.View>
+            {/* Container para logo + SERENE lado a lado */}
+            <View style={styles.logoSereneContainer}>
+              <Animated.View style={[
+                styles.logoContainer, 
+                { 
+                  opacity: logoOpacity,
+                  transform: [{ translateX: logoPosition }]
+                }
+              ]}>
+                <Image
+                  source={logoImage}
+                  style={styles.logo}
+                  accessibilityLabel="Logo do aplicativo Serene"
+                />
+              </Animated.View>
+              
+              <Animated.View style={[
+                styles.sereneContainer, 
+                { 
+                  opacity: sereneOpacity,
+                  transform: [{ translateX: serenePosition }]
+                }
+              ]}>
+                <Text style={styles.sereneText}>
+                  SERENE
+                </Text>
+              </Animated.View>
+            </View>
             
+            {/* Frase final */}
             <Animated.View style={[styles.textContainer, { opacity: textOpacity }]}>
               <Text style={styles.text}>
-                TRANSFORME A SUA MENTE
+                SERENIDADE AO SEU ALCANCE
               </Text>
             </Animated.View>
 
@@ -84,7 +142,7 @@ const ApresentacaoScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff', 
+    backgroundColor: '#b9d2ff', 
   },
   background: {
     flex: 1, 
@@ -104,29 +162,49 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#b9d2ff',
   },
-  logoContainer: {
-    position: 'absolute',
+  
+  // Container para logo + SERENE lado a lado
+  logoSereneContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
+    position: 'absolute',
   },
+  logoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sereneContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    width: width * 0.2,
+    height: width * 0.2,
+    resizeMode: 'contain',
+    tintColor: '#84a9da',
+  },
+  sereneText: {
+    fontFamily: 'Bree-Serif',
+    fontSize: width > 400 ? (width > 500 ? 46 : 42) : 36,
+    color: '#84a9da',
+    fontWeight: 'bold',
+    marginLeft: 15,
+  },
+  
+  // Frase final
   textContainer: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
   },
-  logo: {
-    width: width * 3, 
-    height: width * 0.9, 
-    resizeMode: 'contain',
-  },
   text: {
     fontFamily: 'Bree-Serif',
     fontSize: FONT_BASE_SIZE > 24 ? 24 : FONT_BASE_SIZE, 
-    color: '#0c4793',
+    color: '#0e458c',
     marginHorizontal: 30, 
     lineHeight: FONT_BASE_SIZE * 1.4,
     textAlign: 'center',

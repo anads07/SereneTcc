@@ -25,14 +25,14 @@ const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-// Alturas calculadas para o ScrollView
+// Alturas calculadas para o ScrollView - RESPONSIVAS
 const HEADER_HEIGHT = Platform.select({
-  ios: 120,
-  android: 100 + (StatusBar.currentHeight || 0),
-  default: 110
+  ios: screenWidth > 400 ? 130 : 110,
+  android: screenWidth > 400 ? 110 + (StatusBar.currentHeight || 0) : 90 + (StatusBar.currentHeight || 0),
+  default: 120
 });
 
-const INPUT_HEIGHT = 80;
+const INPUT_HEIGHT = screenWidth > 400 ? 85 : 75;
 const CHAT_AREA_HEIGHT = screenHeight - HEADER_HEIGHT - INPUT_HEIGHT;
 
 const SereneMindScreen = ({ navigation }) => {
@@ -151,7 +151,7 @@ const SereneMindScreen = ({ navigation }) => {
       <SafeAreaView style={styles.headerSafeArea}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Image 
+            <Image 
               source={require('../assets/src/seta.png')} 
               style={styles.backimage}
             />
@@ -171,7 +171,7 @@ const SereneMindScreen = ({ navigation }) => {
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? (screenWidth > 400 ? 90 : 80) : 0}
       >
         <View style={styles.mainContent}>
           {/* SCROLLVIEW COM ALTURA FIXA */}
@@ -223,7 +223,7 @@ const SereneMindScreen = ({ navigation }) => {
               {loading ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Ionicons name="send" size={20} color="white" />
+                <Ionicons name="send" size={screenWidth > 400 ? 22 : 20} color="white" />
               )}
             </TouchableOpacity>
           </View>
@@ -287,14 +287,14 @@ const styles = StyleSheet.create({
   },
   chatContent: {
     paddingHorizontal: screenWidth > 400 ? 20 : 15,
-    paddingVertical: 15,
-    paddingBottom: 20,
+    paddingVertical: screenWidth > 400 ? 15 : 12,
+    paddingBottom: screenWidth > 400 ? 20 : 15,
   },
   messageContainer: {
-    maxWidth: '85%',
+    maxWidth: screenWidth > 400 ? '85%' : '90%',
     padding: screenWidth > 400 ? 15 : 12,
-    borderRadius: 20,
-    marginBottom: 15,
+    borderRadius: screenWidth > 400 ? 20 : 18,
+    marginBottom: screenWidth > 400 ? 15 : 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -304,17 +304,17 @@ const styles = StyleSheet.create({
   botMessageContainer: { 
     backgroundColor: '#fff', 
     alignSelf: 'flex-start', 
-    borderBottomLeftRadius: 5 
+    borderBottomLeftRadius: screenWidth > 400 ? 5 : 4 
   },
   userMessageContainer: { 
     backgroundColor: '#84a9da', 
     alignSelf: 'flex-end', 
-    borderBottomRightRadius: 5 
+    borderBottomRightRadius: screenWidth > 400 ? 5 : 4 
   },
   messageText: { 
-    fontSize: screenWidth > 400 ? 16 : 15, 
+    fontSize: screenWidth > 400 ? (screenWidth > 500 ? 17 : 16) : 15, 
     lineHeight: screenWidth > 400 ? 22 : 20, 
-    marginBottom: 6 
+    marginBottom: screenWidth > 400 ? 6 : 5 
   },
   botMessageText: { 
     color: '#333' 
@@ -335,27 +335,27 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     alignSelf: 'flex-start',
-    marginBottom: 15,
+    marginBottom: screenWidth > 400 ? 15 : 12,
   },
   loadingBubble: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f0f0f0',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
+    paddingHorizontal: screenWidth > 400 ? 16 : 14,
+    paddingVertical: screenWidth > 400 ? 12 : 10,
+    borderRadius: screenWidth > 400 ? 20 : 18,
   },
   loadingText: { 
     fontSize: screenWidth > 400 ? 14 : 13, 
     color: '#5691de', 
-    marginLeft: 8,
+    marginLeft: screenWidth > 400 ? 8 : 6,
     fontStyle: 'italic'
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: screenWidth > 400 ? 20 : 15,
-    paddingVertical: 12,
+    paddingVertical: screenWidth > 400 ? 12 : 10,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
@@ -364,23 +364,23 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-    borderRadius: 25,
-    paddingHorizontal: 15,
-    paddingVertical: Platform.OS === 'ios' ? 12 : 8,
-    marginRight: 10,
+    borderRadius: screenWidth > 400 ? 25 : 22,
+    paddingHorizontal: screenWidth > 400 ? 15 : 12,
+    paddingVertical: Platform.OS === 'ios' ? (screenWidth > 400 ? 12 : 10) : 8,
+    marginRight: screenWidth > 400 ? 10 : 8,
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
   textInput: {
-    fontSize: screenWidth > 400 ? 16 : 15,
+    fontSize: screenWidth > 400 ? (screenWidth > 500 ? 17 : 16) : 15,
     color: '#333',
-    maxHeight: 80,
+    maxHeight: screenWidth > 400 ? 80 : 70,
     textAlignVertical: 'center',
   },
   sendButton: {
-    width: screenWidth > 400 ? 50 : 45,
-    height: screenWidth > 400 ? 50 : 45,
-    borderRadius: 25,
+    width: screenWidth > 400 ? (screenWidth > 500 ? 55 : 50) : 45,
+    height: screenWidth > 400 ? (screenWidth > 500 ? 55 : 50) : 45,
+    borderRadius: screenWidth > 400 ? 25 : 22,
     backgroundColor: '#a3b9df',
     justifyContent: 'center',
     alignItems: 'center',
@@ -394,6 +394,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#a3b9df' 
   },
   bottomSpacer: {
-    height: 10,
+    height: screenWidth > 400 ? 10 : 8,
   },
 });
