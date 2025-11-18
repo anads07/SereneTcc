@@ -34,7 +34,8 @@ const RegisterScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  const API_URL = 'http://172.27.160.1:3000'; 
+  
+  const API_URL = 'http://172.28.144.1:3000';
 
   const validateForm = () => {
     const newErrors = {};
@@ -55,7 +56,11 @@ const RegisterScreen = ({ navigation }) => {
       const response = await fetch(`${API_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ 
+          username: username.trim(), 
+          email: email.trim(), 
+          password 
+        }),
       });
 
       const data = await response.json();
@@ -67,7 +72,8 @@ const RegisterScreen = ({ navigation }) => {
         Alert.alert('Erro no Cadastro', data.message || 'Erro ao tentar registrar. Tente outro email.');
       }
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor.');
+      console.error("Erro de conexão/fetch:", error);
+      Alert.alert('Erro', 'Não foi possível conectar ao servidor. Verifique sua conexão e o IP da API.');
     } finally {
       setLoading(false);
     }
@@ -92,20 +98,17 @@ const RegisterScreen = ({ navigation }) => {
           
           <View style={styles.contentWrapper}>
             
-            {/* HEADER COM LOGO E SERENE - MAIS PRA CIMA */}
             <View style={styles.header}>
               <Image source={logo} style={styles.logo} />
               <Text style={styles.title}>SERENE</Text>
             </View>
 
-            {/* FORM AREA - ELEMENTOS MAIS JUNTOS */}
             <View style={styles.formArea}>
               <View style={styles.headerContainer}>
                 <Text style={styles.greetingText}>Seja bem vindo!</Text>
                 <Text style={styles.instructionText}>Crie sua conta para continuar</Text>
               </View>
 
-              {/* Input Nome de Usuário */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={userIcon} style={styles.inputIcon} />
@@ -122,7 +125,6 @@ const RegisterScreen = ({ navigation }) => {
               </View>
               {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
 
-              {/* Input Email */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={emailIcon} style={styles.inputIcon} />
@@ -140,7 +142,6 @@ const RegisterScreen = ({ navigation }) => {
               </View>
               {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
-              {/* Input Senha com ícone de olho */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={senhaIcon} style={styles.inputIcon} />
@@ -164,7 +165,6 @@ const RegisterScreen = ({ navigation }) => {
               </View>
               {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
-              {/* Botão CADASTRAR */}
               <TouchableOpacity
                 style={styles.button}
                 onPress={handleRegister}
@@ -181,7 +181,6 @@ const RegisterScreen = ({ navigation }) => {
           </View>
         </ScrollView>
         
-        {/* Abas - Estilo harmonizado */}
         <View style={styles.tabContainerBottom}>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>
             <Text style={styles.inactiveTabTextBottom}>Entrar</Text>
@@ -214,19 +213,17 @@ const styles = StyleSheet.create({
     width: screenWidth,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: screenHeight * 0.05, // Reduzido para subir mais
+    paddingTop: screenHeight * 0.05,
   },
   contentWrapper: {
     width: '100%',
     alignItems: 'center',
   },
-
-  // HEADER COM LOGO - MAIS PRA CIMA
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: screenHeight * 0.02, // Reduzido
+    marginBottom: screenHeight * 0.02,
   },
   logo: {
     width: screenWidth > 400 ? (screenWidth > 500 ? 55 : 50) : 45,
@@ -241,21 +238,19 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: 'Bree-Serif',
   },
-
-  // FORM AREA - ELEMENTOS MAIS JUNTOS
   formArea: {
     width: '85%',
     paddingHorizontal: screenWidth * 0.06,
-    paddingVertical: screenHeight * 0.04, // Reduzido
+    paddingVertical: screenHeight * 0.04,
     borderRadius: 25,
     alignItems: 'center',
-    marginTop: screenHeight * 0.07, // Reduzido
+    marginTop: screenHeight * 0.07,
   },
   headerContainer: {
     width: '100%',
     alignItems: 'flex-start',
     paddingHorizontal: 5,
-    marginBottom: screenHeight * 0.03, // Reduzido
+    marginBottom: screenHeight * 0.03,
   },
   greetingText: {
     fontFamily: 'Bree-Serif',
@@ -263,23 +258,21 @@ const styles = StyleSheet.create({
     color: '#0e458c',
     fontWeight: 'bold',
     textAlign: 'left',
-    marginBottom: 2, // Reduzido para juntar mais
+    marginBottom: 2,
   },
   instructionText: {
     fontFamily: 'Bree-Serif',
-   fontSize: screenWidth > 400 ? (screenWidth > 500 ? 20 : 19) : 18,
+    fontSize: screenWidth > 400 ? (screenWidth > 500 ? 20 : 19) : 18,
     color: '#5691de',
     textAlign: 'left',
     fontWeight: '500',
   },
-
-  // INPUTS - MAIS JUNTOS
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(132, 169, 218, 0.7)',
     borderRadius: 16,
-    marginBottom: screenHeight * 0.02, // Reduzido
+    marginBottom: screenHeight * 0.02,
     width: '100%',
     paddingHorizontal: 8,
     height: screenHeight * 0.065,
@@ -317,21 +310,19 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#ff6b6b',
     alignSelf: 'flex-start',
-    marginBottom: screenHeight * 0.01, // Reduzido
+    marginBottom: screenHeight * 0.01,
     marginLeft: 12,
     fontSize: screenWidth > 400 ? (screenWidth > 500 ? 15 : 14) : 13,
     fontWeight: '500',
     fontFamily: 'Bree-Serif',
   },
-
-  // BUTTON - MAIS JUNTO
   button: {
     backgroundColor: '#84a9da',
     borderRadius: 16,
     paddingVertical: screenHeight * 0.02,
     width: '100%',
     alignItems: 'center',
-    marginTop: screenHeight * 0.03, // Reduzido
+    marginTop: screenHeight * 0.03,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -344,8 +335,6 @@ const styles = StyleSheet.create({
     fontSize: screenWidth > 400 ? (screenWidth > 500 ? 20 : 19) : 18,
     fontWeight: 'bold',
   },
-
-  // BOTTOM TABS
   tabContainerBottom: {
     flexDirection: 'row',
     width: '60%',
@@ -356,13 +345,13 @@ const styles = StyleSheet.create({
   activeTabTextBottom: {
     color: '#84a9da',
     fontWeight: 'bold',
-   fontSize: screenWidth > 400 ? (screenWidth > 500 ? 21 : 20) : 19,
+    fontSize: screenWidth > 400 ? (screenWidth > 500 ? 21 : 20) : 19,
     fontFamily: 'Bree-Serif',
   },
   inactiveTabTextBottom: {
     color: '#a7c7e7',
     fontWeight: 'bold',
-   fontSize: screenWidth > 400 ? (screenWidth > 500 ? 21 : 20) : 19,
+    fontSize: screenWidth > 400 ? (screenWidth > 500 ? 21 : 20) : 19,
     fontFamily: 'Bree-Serif',
   },
 });

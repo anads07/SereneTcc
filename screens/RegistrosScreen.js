@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Dimensions,
   Image,
+  Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,51 +16,134 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+const API_URL = 'http://172.28.144.1:3000';
+
 const RegistrosScreen = ({ navigation }) => {
   const [expandedEntryId, setExpandedEntryId] = useState(null);
   const [entries, setEntries] = useState([]);
+  const [userId, setUserId] = useState(null);
 
-  // Buscar entradas do AsyncStorage
-  const loadEntries = async () => {
+  const loadEntries = useCallback(async (currentUserId) => {
+    if (!currentUserId) {
+      console.warn('ID do usuário ausente para carregar entradas.');
+      return;
+    }
+
     try {
-      const existingEntries = await AsyncStorage.getItem('diaryEntries');
-      if (existingEntries) {
-        const entriesData = JSON.parse(existingEntries);
-        setEntries(entriesData);
+      console.log('🔍 Buscando entradas para o usuário:', currentUserId);
+      
+      const response = await fetch(`${API_URL}/api/diary/${currentUserId}`);
+      const data = await response.json();
+
+      console.log('📦 Dados recebidos do servidor:', JSON.stringify(data, null, 2));
+
+      if (response.ok) {
+        const formattedEntries = data.map(entry => {
+          // ✅ AGORA: A imagem já vem como base64 formatado (data:image/jpeg;base64,...)
+          const imageUrl = entry.image;
+
+          const formattedEntry = {
+            id: entry.id,
+            date: new Date(entry.timestamp).toLocaleDateString('pt-BR'), 
+            text: entry.text,
+            image: imageUrl, // ✅ Já está no formato correto para React Native
+            mood: {
+              key: entry.mood_key,
+              name: entry.mood_name,
+              color: entry.mood_color || '#84a9da',
+              icon: entry.mood_icon || 'help-outline',
+            }
+          };
+
+          return formattedEntry;
+        });
+        
+        console.log('🎯 Todas as entries formatadas:', formattedEntries);
+        setEntries(formattedEntries);
+      } else {
+        Alert.alert('Erro', data.message || 'Não foi possível carregar as anotações do diário.');
+        setEntries([]);
       }
     } catch (error) {
-      console.log('Erro ao carregar entradas:', error);
+      console.error('❌ Erro de rede ao carregar entradas:', error);
+      Alert.alert('Erro', 'Falha na conexão. Verifique o servidor Node.js e o IP.');
+      setEntries([]);
     }
-  };
+  }, []);
 
-  // Carregar entradas quando a tela for focada
   useEffect(() => {
-    loadEntries();
+    const fetchUserId = async () => {
+      try {
+        const storedUserId = await AsyncStorage.getItem('userId');
+        console.log('👤 UserID do AsyncStorage:', storedUserId);
+        if (storedUserId) {
+          setUserId(storedUserId);
+          loadEntries(storedUserId); 
+        } else {
+          console.warn('Usuário não logado. ID não encontrado no AsyncStorage.');
+          navigation.navigate('Login');
+        }
+      } catch (e) {
+        console.error('Erro ao buscar userId:', e);
+      }
+    };
+
+    fetchUserId();
     
     const focusListener = navigation.addListener('focus', () => {
-      loadEntries();
+      console.log('🔄 Tela focada - recarregando entradas');
+      if (userId) {
+        loadEntries(userId);
+      } else {
+        fetchUserId(); 
+      }
     });
 
     return focusListener;
-  }, [navigation]);
-
-  const handleBackPress = () => {
-    navigation.goBack();
-  };
-
-  const handleNewEntry = () => {
-    navigation.navigate('DiarioScreen');
-  };
+  }, [navigation, userId, loadEntries]);
 
   const toggleExpand = (id) => {
     setExpandedEntryId(expandedEntryId === id ? null : id);
+  };
+
+  const renderMoodIcon = (entry) => {
+    if (!entry.mood) {
+      return null;
+    }
+
+    return (
+      <View style={[styles.moodCircle, { backgroundColor: entry.mood.color || '#84a9da' }]}>
+        <Ionicons 
+          name={entry.mood.icon || 'help-outline'} 
+          size={20} 
+          color="#000" 
+        />
+      </View>
+    );
+  };
+
+  const renderImage = (entry) => {
+    if (!entry.image) {
+      return null;
+    }
+
+    return (
+      <View style={styles.imageContainer}>
+        <Image 
+          source={{ uri: entry.image }} 
+          style={styles.entryImage}
+          onError={(error) => {
+            console.log('❌ ERRO ao carregar imagem:', error.nativeEvent.error);
+          }}
+        />
+      </View>
+    );
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient colors={['#b9d2ff', '#d9e7ff', '#eaf3ff']} style={styles.background}>
         
-        {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Image 
@@ -83,7 +167,6 @@ const RegistrosScreen = ({ navigation }) => {
 
         <View style={styles.mainContent}>
           
-          {/* CARD PRINCIPAL */}
           <View style={styles.cardContainer}>
             <Text style={styles.cardTitle}>MINHAS ANOTAÇÕES</Text>
             
@@ -99,32 +182,15 @@ const RegistrosScreen = ({ navigation }) => {
                     style={styles.entryContainer}
                     onPress={() => toggleExpand(entry.id)}
                   >
-                    {/* Cabeçalho da Entrada */}
                     <View style={styles.entryHeader}>
                       <Text style={styles.entryDate}>{entry.date}</Text>
-                      <View style={[styles.moodCircle, { backgroundColor: entry.mood.color }]}>
-                        <Ionicons 
-                          name={entry.mood.icon} 
-                          size={20} 
-                          color="#000" 
-                        />
-                      </View>
+                      {renderMoodIcon(entry)}
                     </View>
 
-                    {/* Detalhes Expandidos */}
                     {expandedEntryId === entry.id && (
                       <View style={styles.entryDetails}>
                         <Text style={styles.entryText}>{entry.text}</Text>
-                        
-                        {/* Exibir imagem se existir */}
-                        {entry.image && (
-                          <View style={styles.imageContainer}>
-                            <Image 
-                              source={{ uri: entry.image }} 
-                              style={styles.entryImage}
-                            />
-                          </View>
-                        )}
+                        {renderImage(entry)}
                       </View>
                     )}
                   </TouchableOpacity>
@@ -143,7 +209,6 @@ const RegistrosScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* BOTÃO FLUTUANTE PARA NOVA ENTRADA */}
         <View style={styles.floatingMenuContainer}>
           <TouchableOpacity 
             style={styles.floatingMenuButton}
@@ -178,8 +243,6 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
-  
-  // HEADER
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -213,15 +276,12 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     tintColor: 'white',
   },
-
   mainContent: {
     flex: 1,
     paddingTop: 20,
     paddingBottom: 20,
     alignItems: 'center',
   },
-
-  // CARD PRINCIPAL
   cardContainer: {
     backgroundColor: '#fff',
     borderRadius: 25,
@@ -245,7 +305,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontFamily: 'Bree-Serif',
   },
-
   scrollView: {
     flex: 1,
   },
@@ -253,8 +312,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 10,
   },
-
-  // ENTRADA DO DIÁRIO
   entryContainer: {
     backgroundColor: '#f8f9fa',
     borderRadius: 16,
@@ -305,9 +362,10 @@ const styles = StyleSheet.create({
     color: '#333',
     fontFamily: 'Bree-Serif',
     lineHeight: 20,
+    marginBottom: 15,
   },
   imageContainer: {
-    marginTop: 15,
+    marginTop: 10,
   },
   entryImage: {
     width: '100%',
@@ -316,9 +374,8 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
     borderWidth: 2,
     borderColor: '#5691de',
+    backgroundColor: '#f0f0f0',
   },
-
-  // SEM ENTRADAS
   noEntriesContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -339,8 +396,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-
-  // MENU INFERIOR FLUTUANTE
   floatingMenuContainer: {
     position: 'absolute',
     bottom: screenWidth > 400 ? 25 : 20,

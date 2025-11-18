@@ -19,7 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { GoogleGenAI } from '@google/genai';
 
-const GEMINI_API_KEY = 'SUA_CHAVE_AQUI';
+const GEMINI_API_KEY = 'AIzaSyChFUY4rN8LvRMkPAGLiTDaFllQKAKA3Tw';
 const MODEL = 'gemini-2.5-flash';
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 

@@ -1,3 +1,4 @@
+// DiarioScreen.js (CÓDIGO FINAL - COM BASE64)
 import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
@@ -20,8 +21,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+// 🚨 IP DA API ATUALIZADO:
+const API_URL = 'http://172.28.144.1:3000'; // <<<--- TROQUE ESTE IP PELO SEU IP LOCAL
+
 const moods = [
-   { name: 'Feliz', key: 'happy', icon: 'happy-outline', color: '#FFF3B0' },
+  { name: 'Feliz', key: 'happy', icon: 'happy-outline', color: '#FFF3B0' },
   { name: 'Triste', key: 'sad', icon: 'sad-outline', color: '#A7C7E7' },
   { name: 'Estressado', key: 'stressed', icon: 'flash-outline', color: '#F4A6A6' },
   { name: 'Calmo', key: 'calm', icon: 'leaf-outline', color: '#B5EAD7' },
@@ -35,23 +39,66 @@ const DiarioScreen = ({ navigation, route }) => {
   const [selectedMood, setSelectedMood] = useState(null);
   const [validationError, setValidationError] = useState('');
   const [imageAddedMessage, setImageAddedMessage] = useState('');
+  const [userId, setUserId] = useState(null); 
 
   const initialEmotion = route.params?.initialEmotion;
   const emotionName = route.params?.emotionName;
 
-  // Se veio da Home com uma emoção selecionada, definir automaticamente
+  // Carregar ID do usuário e definir emoção inicial
   useEffect(() => {
-    if (initialEmotion) {
-      const mood = moods.find(m => m.key === initialEmotion);
-      if (mood) {
-        setSelectedMood(mood);
+    const fetchUserIdAndMood = async () => {
+      // 1. Carregar o ID do usuário 
+      try {
+        const storedUserId = await AsyncStorage.getItem('userId');
+        if (storedUserId) {
+          setUserId(storedUserId);
+        } else {
+          Alert.alert('Erro', 'Usuário não logado. Faça login novamente.');
+          navigation.goBack();
+        }
+      } catch (e) {
+        console.error('Erro ao buscar userId:', e);
       }
-    }
+      
+      // 2. Definir a emoção inicial
+      if (initialEmotion) {
+        const mood = moods.find(m => m.key === initialEmotion);
+        if (mood) {
+          setSelectedMood(mood);
+        }
+      }
+    };
+
+    fetchUserIdAndMood();
   }, [initialEmotion]);
 
-  // selecionar imagem da galeria
+  // selecionar imagem da galeria (COMPATÍVEL COM WEB E MOBILE)
   const handlePickImage = async () => {
     try {
+      // 🖥️ PARA WEB
+      if (Platform.OS === 'web') {
+        return new Promise((resolve) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          
+          input.onchange = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const base64 = e.target.result; // Já vem como data:image/...
+                setNewEntryImage(base64);
+                setImageAddedMessage('Foto adicionada! Pronto para salvar.');
+              };
+              reader.readAsDataURL(file);
+            }
+          };
+          input.click();
+        });
+      }
+
+      // 📱 PARA MOBILE
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (status !== 'granted') {
@@ -64,11 +111,17 @@ const DiarioScreen = ({ navigation, route }) => {
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
+        base64: true, // ✅ IMPORTANTE: Pedir base64 no mobile também
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedImage = result.assets[0];
-        setNewEntryImage(selectedImage.uri);
+        // ✅ Mobile: usa base64 se disponível, senão usa URI
+        const imageUri = selectedImage.base64 
+          ? `data:image/jpeg;base64,${selectedImage.base64}`
+          : selectedImage.uri;
+        
+        setNewEntryImage(imageUri);
         setImageAddedMessage('Foto adicionada! Pronto para salvar.');
       }
     } catch (error) {
@@ -92,74 +145,81 @@ const DiarioScreen = ({ navigation, route }) => {
     return true;
   };
 
-  // Atualizar estatísticas no Home
-  const updateHomeStatistics = async (moodKey) => {
-    try {
-      const existingStats = await AsyncStorage.getItem('emotionStatistics');
-      let stats = existingStats ? JSON.parse(existingStats) : {
-        happy: 15.2,
-        sad: 9.1,
-        stressed: 6.1,
-        calm: 30.3,
-        anxious: 25.4,
-        confused: 13.9
-      };
-
-      if (stats[moodKey]) {
-        stats[moodKey] += 2;
-        
-        const otherMoods = Object.keys(stats).filter(key => key !== moodKey);
-        const totalOther = otherMoods.reduce((sum, key) => sum + stats[key], 0);
-        const adjustment = 2 / otherMoods.length;
-        
-        otherMoods.forEach(key => {
-          stats[key] = (stats[key] / totalOther) * (100 - stats[moodKey]);
-        });
-      }
-
-      await AsyncStorage.setItem('emotionStatistics', JSON.stringify(stats));
-    } catch (error) {
-      console.log('Erro ao atualizar estatísticas:', error);
-    }
-  };
-
-  // salvar entrada no diário
+  // 🔑 SALVAR ENTRADA NO DIÁRIO (COM BASE64)
   const handleSaveEntry = async () => {
-    if (!validateForm()) {
+    if (!validateForm() || !userId) {
       return;
     }
 
+    let imageBase64 = null;
+    
+    // Converter imagem para base64 se existir
+    if (newEntryImage) {
+      try {
+        // Se já é base64 (vindo da web), usa diretamente
+        if (newEntryImage.startsWith('data:image')) {
+          imageBase64 = newEntryImage.split(',')[1]; // Remove o prefixo
+        } else {
+          // Para mobile, converte a URI para base64
+          const response = await fetch(newEntryImage);
+          const blob = await response.blob();
+          imageBase64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64 = reader.result.split(',')[1];
+              resolve(base64);
+            };
+            reader.readAsDataURL(blob);
+          });
+        }
+        console.log('📸 Imagem convertida para base64 - Tamanho:', imageBase64?.length);
+      } catch (error) {
+        console.error('❌ Erro ao converter imagem para base64:', error);
+        Alert.alert('Aviso', 'A imagem não pôde ser processada. A entrada será salva sem imagem.');
+      }
+    }
+
+    const saveData = {
+      user_id: userId,
+      text: newEntryText,
+      mood_key: selectedMood.key,
+      mood_name: selectedMood.name,
+      mood_color: selectedMood.color,
+      mood_icon: selectedMood.icon,
+      timestamp: new Date().toISOString(),
+      image_base64: imageBase64 // ✅ AGORA: Envia base64 diretamente
+    };
+
     try {
-      const newEntry = {
-        id: Date.now(),
-        date: new Date().toLocaleDateString('pt-BR'),
-        timestamp: new Date().toISOString(),
-        text: newEntryText,
-        mood: selectedMood,
-        image: newEntryImage,
-      };
+      const response = await fetch(`${API_URL}/api/diary/save`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(saveData),
+      });
 
-      const existingEntries = await AsyncStorage.getItem('diaryEntries');
-      const entries = existingEntries ? JSON.parse(existingEntries) : [];
-      const updatedEntries = [newEntry, ...entries];
-      
-      await AsyncStorage.setItem('diaryEntries', JSON.stringify(updatedEntries));
-      await updateHomeStatistics(selectedMood.key);
+      const data = await response.json();
 
-      Alert.alert('Sucesso!', 'Entrada salva com sucesso!');
-      
-      // Limpar formulário
-      setNewEntryText('');
-      setNewEntryImage(null);
-      setSelectedMood(null);
-      setImageAddedMessage('');
-      setValidationError('');
-      
-      // Navegar para a tela de registros
-      navigation.navigate('RegistrosScreen');
+      if (response.ok) {
+        Alert.alert('Sucesso!', 'Entrada salva com sucesso no banco de dados!');
+        
+        // Limpar formulário
+        setNewEntryText('');
+        setNewEntryImage(null);
+        setSelectedMood(null);
+        setImageAddedMessage('');
+        setValidationError('');
+        
+        navigation.navigate('RegistrosScreen');
+      } else {
+        console.error('Erro do servidor:', data.errorDetails || data.message);
+        Alert.alert('Erro', `Não foi possível salvar a entrada. Detalhes: ${data.message}`);
+      }
       
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível salvar a entrada.');
+      console.error('Erro na requisição de rede:', error);
+      Alert.alert('Erro', 'Não foi possível conectar ao servidor. Verifique o IP e se o servidor Node.js está rodando.');
     }
   };
 
@@ -167,7 +227,6 @@ const DiarioScreen = ({ navigation, route }) => {
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient colors={['#b9d2ff', '#d9e7ff', '#eaf3ff']} style={styles.background}>
         
-        {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Image 
@@ -202,13 +261,11 @@ const DiarioScreen = ({ navigation, route }) => {
           >   
             <View style={styles.formContainer}>
               
-              {/* Título e Data */}
               <View style={styles.titleSection}>
                 <Text style={styles.formTitle}>Como foi seu dia?</Text>
                 <Text style={styles.formDate}>{new Date().toLocaleDateString('pt-BR')}</Text>
               </View>
 
-              {/* Campo de Texto */}
               <View style={styles.inputSection}>
                 <Text style={styles.inputLabel}>Sua anotação</Text>
                 <TextInput
@@ -224,7 +281,6 @@ const DiarioScreen = ({ navigation, route }) => {
                 />
               </View>
 
-              {/* Seleção de Humor - SCROLL HORIZONTAL */}
               <View style={styles.moodSection}>
                 <Text style={styles.inputLabel}>Como você está se sentindo?</Text>
                 <ScrollView 
@@ -249,28 +305,27 @@ const DiarioScreen = ({ navigation, route }) => {
                       }}
                     >
                     <Ionicons
-  name={mood.icon}
-  size={screenWidth > 400 ? (screenWidth > 500 ? 30 : 28) : 24}
-  color={selectedMood?.name === mood.name ? '#000' : '#31356e'} // Preto quando selecionado, #31356e quando não
-/>
-<Text style={[
-  styles.moodText, 
-  selectedMood?.name === mood.name ? { 
-    color: '#000', // Preto quando selecionado
-    fontWeight: 'bold' 
-  } : {
-    color: '#31356e', // #31356e quando não selecionado
-    fontWeight: 'bold' 
-  }
-]}>
-  {mood.name}
-</Text>
+                      name={mood.icon}
+                      size={screenWidth > 400 ? (screenWidth > 500 ? 30 : 28) : 24}
+                      color={selectedMood?.name === mood.name ? '#000' : '#31356e'} 
+                    />
+                    <Text style={[
+                      styles.moodText, 
+                      selectedMood?.name === mood.name ? { 
+                        color: '#000', 
+                        fontWeight: 'bold' 
+                      } : {
+                        color: '#31356e', 
+                        fontWeight: 'bold' 
+                      }
+                    ]}>
+                      {mood.name}
+                    </Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>
 
-              {/* Adicionar Imagem */}
               <View style={styles.imageSection}>
                 <Text style={styles.inputLabel}>Adicionar imagem (opcional)</Text>
                 <TouchableOpacity style={styles.imagePickerButton} onPress={handlePickImage}>
@@ -290,7 +345,6 @@ const DiarioScreen = ({ navigation, route }) => {
                 )}
               </View>
 
-              {/* Mensagem de Erro */}
               {validationError !== '' && (
                 <View style={styles.errorContainer}>
                   <Ionicons name="warning-outline" size={screenWidth > 400 ? 22 : 20} color="#ff3b30" />
@@ -298,7 +352,6 @@ const DiarioScreen = ({ navigation, route }) => {
                 </View>
               )}
 
-              {/* Botão Salvar - MAIS PRÓXIMO */}
               <TouchableOpacity style={styles.saveButton} onPress={handleSaveEntry}>
                 <LinearGradient
                   colors={['#0e458c', '#1a5bb5']}
@@ -364,7 +417,7 @@ const styles = StyleSheet.create({
     tintColor: 'white',
   },
 
-  // SCROLL CONTENT CORRIGIDO
+  // SCROLL CONTENT
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: screenWidth > 400 ? 25 : 20,
@@ -376,7 +429,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // SEÇÃO DE TÍTULO - RESPONSIVO
+  // SEÇÃO DE TÍTULO
   titleSection: {
     alignItems: 'center',
     marginBottom: screenWidth > 400 ? 25 : 20,
@@ -396,7 +449,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Bree-Serif',
   },
 
-  // SEÇÃO DE INPUT - RESPONSIVO
+  // SEÇÃO DE INPUT
   inputSection: {
     width: '100%',
     marginBottom: screenWidth > 400 ? 30 : 25,
@@ -429,7 +482,7 @@ const styles = StyleSheet.create({
   // SEÇÃO DE HUMOR - SCROLL HORIZONTAL
   moodSection: {
     width: '100%',
-    marginBottom: screenWidth > 400 ? 25 : 20, // Reduzido para aproximar do botão
+    marginBottom: screenWidth > 400 ? 25 : 20, 
   },
   moodScrollContainer: {
     width: '100%',
@@ -445,7 +498,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenWidth > 400 ? 12 : 10,
     borderRadius: screenWidth > 400 ? 14 : 12,
     minWidth: screenWidth > 400 ? 70 : 60,
-    marginHorizontal: 4, // MENOS ESPAÇAMENTO
+    marginHorizontal: 4, 
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -462,10 +515,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Bree-Serif',
   },
 
-  // SEÇÃO DE IMAGEM - RESPONSIVO
+  // SEÇÃO DE IMAGEM
   imageSection: {
     width: '100%',
-    marginBottom: screenWidth > 400 ? 20 : 15, // Reduzido para aproximar do botão
+    marginBottom: screenWidth > 400 ? 20 : 15, 
   },
   imagePickerButton: {
     flexDirection: 'row',
@@ -498,7 +551,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Bree-Serif',
   },
   imagePreviewContainer: {
-    marginBottom: screenWidth > 400 ? 15 : 12, // Reduzido
+    marginBottom: screenWidth > 400 ? 15 : 12, 
     width: '100%',
     alignItems: 'center',
   },
@@ -519,14 +572,14 @@ const styles = StyleSheet.create({
     borderColor: '#5691de',
   },
 
-  // ERRO - RESPONSIVO
+  // ERRO
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     padding: screenWidth > 400 ? 16 : 14,
     borderRadius: screenWidth > 400 ? 14 : 12,
-    marginBottom: screenWidth > 400 ? 15 : 12, // Reduzido para aproximar do botão
+    marginBottom: screenWidth > 400 ? 15 : 12, 
     width: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -543,11 +596,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // BOTÃO SALVAR - MAIS PRÓXIMO
+  // BOTÃO SALVAR
   saveButton: {
     borderRadius: screenWidth > 400 ? 28 : 25,
     overflow: 'hidden',
-    marginTop: screenWidth > 400 ? 10 : 8, // REDUZIDO para ficar mais próximo
+    marginTop: screenWidth > 400 ? 10 : 8, 
     width: '100%',
     maxWidth: screenWidth > 400 ? 350 : 300,
     shadowColor: '#000',
@@ -571,7 +624,7 @@ const styles = StyleSheet.create({
   },
 
   bottomSpacer: {
-    height: screenWidth > 400 ? 20 : 15, // Reduzido
+    height: screenWidth > 400 ? 20 : 15, 
   },
 });
 
