@@ -19,8 +19,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const API_URL = 'http://172.28.144.1:3000';
+// URL base da API
+const API_URL = 'http://172.20.112.1:3000'; 
 
+// Assets de imagem
 const emailIcon = require('../assets/src/user.png');
 const senhaIcon = require('../assets/src/senha.png');
 const logo = require('../assets/src/perfil.png');
@@ -33,9 +35,13 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({}); 
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Mensagem padronizada para erros de autenticação da API
+  const API_ERROR_MESSAGE = 'Email/senha incorretos ou não cadastrados.';
 
+  // Função para validar os campos localmente
   const validateForm = () => {
     const newErrors = {};
     if (!email) newErrors.email = 'Email é obrigatório';
@@ -46,10 +52,12 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleLogin = async () => {
+    // Limpa o erro anterior antes de tentar o login
+    setErrors(prev => ({ ...prev, password: undefined }));
+    
     if (!validateForm()) return;
 
     setLoading(true);
-    setErrors({});
 
     try {
       const response = await fetch(`${API_URL}/login`, {
@@ -61,19 +69,23 @@ const LoginScreen = ({ navigation }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // ✅ SALVAR userId NO AsyncStorage
+        // Sucesso: Salva dados do usuário e navega
         await AsyncStorage.setItem('userId', data.userId.toString());
         await AsyncStorage.setItem('username', data.username);
         
-        Alert.alert('Sucesso', 'Login realizado com sucesso!');
         navigation.navigate('HomeScreen', {
           userId: data.userId,
           username: data.username,
         });
       } else {
-        Alert.alert('Erro no Login', data.message || 'Email ou senha incorretos. Tente novamente.');
+        // Falha: Exibe a mensagem de erro padronizada
+        setErrors(prev => ({
+          ...prev,
+          password: API_ERROR_MESSAGE,
+        }));
       }
     } catch (error) {
+      // Erro de rede ou conexão
       console.error("Erro de conexão/fetch:", error);
       Alert.alert('Erro', 'Não foi possível conectar ao servidor. Verifique sua conexão e o IP da API.');
     } finally {
@@ -81,10 +93,12 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  // Alterna a visibilidade da senha
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
   };
 
+  // Exibe indicador enquanto a fonte carrega
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
@@ -113,6 +127,7 @@ const LoginScreen = ({ navigation }) => {
                 <Text style={styles.instructionText}>Faça seu login para continuar</Text>
               </View>
 
+              {/* INPUT EMAIL */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={emailIcon} style={styles.inputIcon} />
@@ -124,12 +139,17 @@ const LoginScreen = ({ navigation }) => {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    setErrors(prev => ({ ...prev, email: undefined }));
+                  }}
                   selectionColor="rgba(255, 255, 255, 0.6)"
                 />
               </View>
+              {/* Exibe erro de validação do email */}
               {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
+              {/* INPUT SENHA */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={senhaIcon} style={styles.inputIcon} />
@@ -140,9 +160,13 @@ const LoginScreen = ({ navigation }) => {
                   placeholderTextColor="rgba(255, 255, 255, 0.9)"
                   secureTextEntry={!showPassword}
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    setErrors(prev => ({ ...prev, password: undefined }));
+                  }}
                   selectionColor="rgba(255, 255, 255, 0.6)"
                 />
+                {/* Ícone para alternar visibilidade da senha */}
                 <TouchableOpacity onPress={toggleShowPassword} style={styles.eyeIcon}>
                   <Ionicons 
                     name={showPassword ? "eye-off-outline" : "eye-outline"} 
@@ -151,8 +175,18 @@ const LoginScreen = ({ navigation }) => {
                   />
                 </TouchableOpacity>
               </View>
-              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+              {/* Exibe erro de validação da senha ou erro da API */}
+              {errors.password && (
+                <Text style={[
+                  styles.errorText, 
+                  // Aplica estilo se for a mensagem consolidada da API
+                  errors.password === API_ERROR_MESSAGE && styles.apiErrorText 
+                ]}>
+                  {errors.password}
+                </Text>
+              )}
 
+              {/* BOTÃO LOGIN */}
               <TouchableOpacity
                 style={styles.button}
                 onPress={handleLogin}
@@ -168,6 +202,7 @@ const LoginScreen = ({ navigation }) => {
           </View>
         </ScrollView>
 
+        {/* NAVEGAÇÃO INFERIOR */}
         <View style={styles.tabContainerBottom}>
           <Text style={styles.activeTabTextBottom}>Entrar</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -179,6 +214,7 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
+// estilos
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -284,23 +320,27 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#fff',
     fontSize: screenWidth > 400 ? (screenWidth > 500 ? 18 : 17) : 16,
-    paddingRight: -35,
     fontFamily: 'Bree-Serif',
     paddingVertical: 0,
     fontWeight: 'normal',
+    paddingRight: 5, 
   },
   eyeIcon: {
     padding: 10,
-    marginRight: 5,
+    marginLeft: -25,
   },
   errorText: {
-    color: '#ff6b6b',
+    color: '#0e458c', 
     alignSelf: 'flex-start',
-    marginBottom: screenHeight * 0.01,
-    marginLeft: 12,
+    marginBottom: screenHeight * 0.005, 
+    marginLeft: screenWidth * 0.01, 
     fontSize: screenWidth > 400 ? (screenWidth > 500 ? 15 : 14) : 13,
-    fontWeight: '500',
+    fontWeight: 'bold', 
     fontFamily: 'Bree-Serif',
+  },
+  apiErrorText: {
+    color: '#0e458c', 
+    fontWeight: 'bold',
   },
   button: {
     backgroundColor: '#84a9da',

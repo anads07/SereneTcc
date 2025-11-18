@@ -14,39 +14,38 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// constantes e configurações
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const API_URL = 'http://172.28.144.1:3000';
+// ip da api atualizado
+const API_URL = 'http://172.20.112.1:3000';
 
 const RegistrosScreen = ({ navigation }) => {
+  // estados
   const [expandedEntryId, setExpandedEntryId] = useState(null);
   const [entries, setEntries] = useState([]);
   const [userId, setUserId] = useState(null);
 
+  // função auxiliar: carregar entradas do diário
   const loadEntries = useCallback(async (currentUserId) => {
     if (!currentUserId) {
-      console.warn('ID do usuário ausente para carregar entradas.');
+      console.warn('id do usuário ausente para carregar entradas.');
       return;
     }
 
     try {
-      console.log('🔍 Buscando entradas para o usuário:', currentUserId);
-      
       const response = await fetch(`${API_URL}/api/diary/${currentUserId}`);
       const data = await response.json();
 
-      console.log('📦 Dados recebidos do servidor:', JSON.stringify(data, null, 2));
-
       if (response.ok) {
         const formattedEntries = data.map(entry => {
-          // ✅ AGORA: A imagem já vem como base64 formatado (data:image/jpeg;base64,...)
           const imageUrl = entry.image;
 
           const formattedEntry = {
             id: entry.id,
-            date: new Date(entry.timestamp).toLocaleDateString('pt-BR'), 
+            date: new Date(entry.timestamp).toLocaleDateString('pt-BR'),
             text: entry.text,
-            image: imageUrl, // ✅ Já está no formato correto para React Native
+            image: imageUrl, 
             mood: {
               key: entry.mood_key,
               name: entry.mood_name,
@@ -57,55 +56,55 @@ const RegistrosScreen = ({ navigation }) => {
 
           return formattedEntry;
         });
-        
-        console.log('🎯 Todas as entries formatadas:', formattedEntries);
+
         setEntries(formattedEntries);
       } else {
-        Alert.alert('Erro', data.message || 'Não foi possível carregar as anotações do diário.');
+        Alert.alert('Erro', data.message || 'não foi possível carregar as anotações do diário.');
         setEntries([]);
       }
     } catch (error) {
-      console.error('❌ Erro de rede ao carregar entradas:', error);
-      Alert.alert('Erro', 'Falha na conexão. Verifique o servidor Node.js e o IP.');
+      console.error('erro de rede ao carregar entradas:', error);
+      Alert.alert('Erro', 'falha na conexão. verifique o servidor node.js e o ip.');
       setEntries([]);
     }
   }, []);
 
+  // efeito: buscar id do usuário e recarregar dados
   useEffect(() => {
     const fetchUserId = async () => {
       try {
         const storedUserId = await AsyncStorage.getItem('userId');
-        console.log('👤 UserID do AsyncStorage:', storedUserId);
         if (storedUserId) {
           setUserId(storedUserId);
-          loadEntries(storedUserId); 
+          loadEntries(storedUserId);
         } else {
-          console.warn('Usuário não logado. ID não encontrado no AsyncStorage.');
+          console.warn('usuário não logado. id não encontrado no asyncstorage.');
           navigation.navigate('Login');
         }
       } catch (e) {
-        console.error('Erro ao buscar userId:', e);
+        console.error('erro ao buscar userId:', e);
       }
     };
 
     fetchUserId();
-    
+
     const focusListener = navigation.addListener('focus', () => {
-      console.log('🔄 Tela focada - recarregando entradas');
       if (userId) {
         loadEntries(userId);
       } else {
-        fetchUserId(); 
+        fetchUserId();
       }
     });
 
     return focusListener;
   }, [navigation, userId, loadEntries]);
 
+  // alternar expansão do registro
   const toggleExpand = (id) => {
     setExpandedEntryId(expandedEntryId === id ? null : id);
   };
 
+  // renderizar ícone de humor
   const renderMoodIcon = (entry) => {
     if (!entry.mood) {
       return null;
@@ -113,15 +112,16 @@ const RegistrosScreen = ({ navigation }) => {
 
     return (
       <View style={[styles.moodCircle, { backgroundColor: entry.mood.color || '#84a9da' }]}>
-        <Ionicons 
-          name={entry.mood.icon || 'help-outline'} 
-          size={20} 
-          color="#000" 
+        <Ionicons
+          name={entry.mood.icon || 'help-outline'}
+          size={20}
+          color="#000"
         />
       </View>
     );
   };
 
+  // renderizar imagem
   const renderImage = (entry) => {
     if (!entry.image) {
       return null;
@@ -129,48 +129,51 @@ const RegistrosScreen = ({ navigation }) => {
 
     return (
       <View style={styles.imageContainer}>
-        <Image 
-          source={{ uri: entry.image }} 
+        <Image
+          source={{ uri: entry.image }}
           style={styles.entryImage}
           onError={(error) => {
-            console.log('❌ ERRO ao carregar imagem:', error.nativeEvent.error);
+            console.error('erro ao carregar imagem:', error.nativeEvent.error);
           }}
         />
       </View>
     );
   };
 
+  // renderização principal
   return (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient colors={['#b9d2ff', '#d9e7ff', '#eaf3ff']} style={styles.background}>
-        
+
+        {/* header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Image 
-              source={require('../assets/src/seta.png')} 
+            <Image
+              source={require('../assets/src/seta.png')}
               style={styles.backimage}
             />
           </TouchableOpacity>
 
           <Text style={styles.title}>DIÁRIO</Text>
 
-          <TouchableOpacity 
-            onPress={() => navigation.navigate('PerfilScreen')} 
+          <TouchableOpacity
+            onPress={() => navigation.navigate('PerfilScreen')}
             style={styles.profileButton}
           >
-            <Image 
-              source={require('../assets/src/perfil.png')} 
+            <Image
+              source={require('../assets/src/perfil.png')}
               style={styles.profileImage}
             />
           </TouchableOpacity>
         </View>
 
         <View style={styles.mainContent}>
-          
+
+          {/* card de anotações */}
           <View style={styles.cardContainer}>
             <Text style={styles.cardTitle}>MINHAS ANOTAÇÕES</Text>
-            
-            <ScrollView 
+
+            <ScrollView
               style={styles.scrollView}
               contentContainerStyle={styles.scrollContent}
               showsVerticalScrollIndicator={false}
@@ -198,10 +201,10 @@ const RegistrosScreen = ({ navigation }) => {
               ) : (
                 <View style={styles.noEntriesContainer}>
                   <Ionicons name="journal-outline" size={60} color="#84a9da" />
-                  <Text style={styles.noEntriesTitle}>Nenhuma anotação</Text>
+                  <Text style={styles.noEntriesTitle}>nenhuma anotação</Text>
                   <Text style={styles.noEntriesText}>
-                    Você ainda não fez nenhuma anotação no diário.{"\n"}
-                    Clique no botão + para começar!
+                    você ainda não fez nenhuma anotação no diário.{"\n"}
+                    clique no botão + para começar!
                   </Text>
                 </View>
               )}
@@ -209,24 +212,25 @@ const RegistrosScreen = ({ navigation }) => {
           </View>
         </View>
 
+        {/* menu inferior flutuante */}
         <View style={styles.floatingMenuContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.floatingMenuButton}
-            onPress={() => navigation.navigate('ChatScreen')} 
+            onPress={() => navigation.navigate('ChatScreen')}
           >
-            <Image 
-              source={require('../assets/src/robo.png')} 
+            <Image
+              source={require('../assets/src/robo.png')}
               style={styles.floatingMenuIcon}
             />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.floatingMenuButton}
-            onPress={() => navigation.navigate('DiarioScreen')} 
+            onPress={() => navigation.navigate('DiarioScreen')}
           >
-            <Ionicons 
-              name="add-outline" 
-              size={screenWidth > 400 ? (screenWidth > 500 ? 36 : 32) : 28} 
-              color="#0e458c" 
+            <Ionicons
+              name="add-outline"
+              size={screenWidth > 400 ? (screenWidth > 500 ? 36 : 32) : 28}
+              color="#0e458c"
             />
           </TouchableOpacity>
         </View>
@@ -235,6 +239,7 @@ const RegistrosScreen = ({ navigation }) => {
   );
 };
 
+// estilos
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -309,8 +314,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    flexGrow: 1,
+    flexGrow: 1, 
     paddingBottom: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   entryContainer: {
     backgroundColor: '#f8f9fa',
@@ -324,6 +331,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: '#0c4793',
+    width: '100%', 
   },
   entryHeader: {
     flexDirection: 'row',
@@ -380,6 +388,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 50,
+    width: '100%', 
   },
   noEntriesTitle: {
     fontSize: screenWidth > 400 ? 20 : 18,

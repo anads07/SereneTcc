@@ -1,4 +1,3 @@
-// DiarioScreen.js (CÓDIGO FINAL - COM BASE64)
 import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
@@ -19,11 +18,13 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// constantes e configurações
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-// 🚨 IP DA API ATUALIZADO:
-const API_URL = 'http://172.28.144.1:3000'; // <<<--- TROQUE ESTE IP PELO SEU IP LOCAL
+// ip da api atualizado
+const API_URL = 'http://172.20.112.1:3000'; 
 
+// lista de humores
 const moods = [
   { name: 'Feliz', key: 'happy', icon: 'happy-outline', color: '#FFF3B0' },
   { name: 'Triste', key: 'sad', icon: 'sad-outline', color: '#A7C7E7' },
@@ -34,20 +35,21 @@ const moods = [
 ];
 
 const DiarioScreen = ({ navigation, route }) => {
+  // estados
   const [newEntryText, setNewEntryText] = useState('');
-  const [newEntryImage, setNewEntryImage] = useState(null);
+  const [newEntryImage, setNewEntryImage] = useState(null); 
   const [selectedMood, setSelectedMood] = useState(null);
   const [validationError, setValidationError] = useState('');
   const [imageAddedMessage, setImageAddedMessage] = useState('');
   const [userId, setUserId] = useState(null); 
 
+  // parâmetros de navegação
   const initialEmotion = route.params?.initialEmotion;
-  const emotionName = route.params?.emotionName;
 
-  // Carregar ID do usuário e definir emoção inicial
+  // efeito: carregar id do usuário e definir humor inicial
   useEffect(() => {
     const fetchUserIdAndMood = async () => {
-      // 1. Carregar o ID do usuário 
+      // 1. carregar o id do usuário (auth)
       try {
         const storedUserId = await AsyncStorage.getItem('userId');
         if (storedUserId) {
@@ -60,7 +62,7 @@ const DiarioScreen = ({ navigation, route }) => {
         console.error('Erro ao buscar userId:', e);
       }
       
-      // 2. Definir a emoção inicial
+      // 2. definir o humor inicial, se veio da tela anterior
       if (initialEmotion) {
         const mood = moods.find(m => m.key === initialEmotion);
         if (mood) {
@@ -72,37 +74,66 @@ const DiarioScreen = ({ navigation, route }) => {
     fetchUserIdAndMood();
   }, [initialEmotion]);
 
-  // selecionar imagem da galeria (COMPATÍVEL COM WEB E MOBILE)
+  // funções auxiliares
+
+  /**
+    converte uma uri de arquivo local para base64 (usado para mobile)
+    @param {string} uri - uri do arquivo
+    @returns {promise<string|null>} base64 da imagem (sem prefixo 'data:image/')
+   */
+  const uriToBase64 = async (uri) => {
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          // remove o prefixo 'data:image/jpeg;base64,'
+          const base64 = reader.result.split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('erro ao converter uri para base64:', error);
+      return null;
+    }
+  };
+
+  /**
+   * permite ao usuário selecionar uma imagem da galeria (compatível com web e mobile).
+   */
   const handlePickImage = async () => {
     try {
-      // 🖥️ PARA WEB
+      // para web: usa input de arquivo nativo
       if (Platform.OS === 'web') {
-        return new Promise((resolve) => {
-          const input = document.createElement('input');
-          input.type = 'file';
-          input.accept = 'image/*';
-          
-          input.onchange = (event) => {
-            const file = event.target.files[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const base64 = e.target.result; // Já vem como data:image/...
-                setNewEntryImage(base64);
-                setImageAddedMessage('Foto adicionada! Pronto para salvar.');
-              };
-              reader.readAsDataURL(file);
-            }
-          };
-          input.click();
-        });
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        
+        input.onchange = (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              // já vem como data url (base64 com prefixo)
+              setNewEntryImage(e.target.result); 
+              setImageAddedMessage('Foto adicionada! Pronto para salvar.');
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+        return;
       }
 
-      // 📱 PARA MOBILE
+      // para mobile: usa imagepicker do expo
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (status !== 'granted') {
-        Alert.alert('Permissão necessária', 'Precisamos de acesso à sua galeria.');
+        Alert.alert('Permissão necessária', 'Precisamos de acesso à sua galeria para adicionar fotos.');
         return;
       }
 
@@ -111,25 +142,29 @@ const DiarioScreen = ({ navigation, route }) => {
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
-        base64: true, // ✅ IMPORTANTE: Pedir base64 no mobile também
+        base64: true, 
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedImage = result.assets[0];
-        // ✅ Mobile: usa base64 se disponível, senão usa URI
+        
+        // se expo retornou base64, monta a data url. senão, usa a uri.
         const imageUri = selectedImage.base64 
-          ? `data:image/jpeg;base64,${selectedImage.base64}`
+          ? `data:${selectedImage.mimeType || 'image/jpeg'};base64,${selectedImage.base64}`
           : selectedImage.uri;
         
         setNewEntryImage(imageUri);
         setImageAddedMessage('Foto adicionada! Pronto para salvar.');
       }
     } catch (error) {
+      console.error('erro ao acessar a galeria:', error);
       Alert.alert('Erro', 'Não foi possível acessar a galeria.');
     }
   };
 
-  // validar formulário antes de salvar
+  /**
+   * valida os campos do formulário antes de salvar.
+   */
   const validateForm = () => {
     if (newEntryText.trim() === '') {
       setValidationError('Por favor, escreva algo sobre seu dia.');
@@ -145,7 +180,7 @@ const DiarioScreen = ({ navigation, route }) => {
     return true;
   };
 
-  // 🔑 SALVAR ENTRADA NO DIÁRIO (COM BASE64)
+  // função principal: salvar entrada no diário
   const handleSaveEntry = async () => {
     if (!validateForm() || !userId) {
       return;
@@ -153,28 +188,23 @@ const DiarioScreen = ({ navigation, route }) => {
 
     let imageBase64 = null;
     
-    // Converter imagem para base64 se existir
     if (newEntryImage) {
       try {
-        // Se já é base64 (vindo da web), usa diretamente
+        // se a imagem já é uma data url (web ou mobile com base64), extrai o base64
         if (newEntryImage.startsWith('data:image')) {
-          imageBase64 = newEntryImage.split(',')[1]; // Remove o prefixo
+          imageBase64 = newEntryImage.split(',')[1];
         } else {
-          // Para mobile, converte a URI para base64
-          const response = await fetch(newEntryImage);
-          const blob = await response.blob();
-          imageBase64 = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const base64 = reader.result.split(',')[1];
-              resolve(base64);
-            };
-            reader.readAsDataURL(blob);
-          });
+          // se for uma uri local (caminho de arquivo), precisa converter
+          imageBase64 = await uriToBase64(newEntryImage);
         }
-        console.log('📸 Imagem convertida para base64 - Tamanho:', imageBase64?.length);
+        
+        if (!imageBase64) {
+          throw new Error("falha na conversão da imagem.");
+        }
+        console.log('imagem convertida para base64 - tamanho:', imageBase64.length);
+
       } catch (error) {
-        console.error('❌ Erro ao converter imagem para base64:', error);
+        console.error('erro ao processar imagem:', error);
         Alert.alert('Aviso', 'A imagem não pôde ser processada. A entrada será salva sem imagem.');
       }
     }
@@ -187,7 +217,7 @@ const DiarioScreen = ({ navigation, route }) => {
       mood_color: selectedMood.color,
       mood_icon: selectedMood.icon,
       timestamp: new Date().toISOString(),
-      image_base64: imageBase64 // ✅ AGORA: Envia base64 diretamente
+      image_base64: imageBase64 // envia o base64 (sem prefixo) ou null
     };
 
     try {
@@ -202,9 +232,9 @@ const DiarioScreen = ({ navigation, route }) => {
       const data = await response.json();
 
       if (response.ok) {
-        Alert.alert('Sucesso!', 'Entrada salva com sucesso no banco de dados!');
+        Alert.alert('Sucesso!', 'Entrada salva com sucesso!');
         
-        // Limpar formulário
+        // limpar estados
         setNewEntryText('');
         setNewEntryImage(null);
         setSelectedMood(null);
@@ -213,20 +243,22 @@ const DiarioScreen = ({ navigation, route }) => {
         
         navigation.navigate('RegistrosScreen');
       } else {
-        console.error('Erro do servidor:', data.errorDetails || data.message);
-        Alert.alert('Erro', `Não foi possível salvar a entrada. Detalhes: ${data.message}`);
+        console.error('erro do servidor:', data.errorDetails || data.message);
+        Alert.alert('Erro', `Não foi possível salvar a entrada. detalhes: ${data.message}`);
       }
       
     } catch (error) {
-      console.error('Erro na requisição de rede:', error);
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor. Verifique o IP e se o servidor Node.js está rodando.');
+      console.error('erro na requisição de rede:', error);
+      Alert.alert('Erro', 'Não foi possível conectar ao servidor. verifique o ip e se o servidor node.js está rodando.');
     }
   };
 
+  // renderização
   return (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient colors={['#b9d2ff', '#d9e7ff', '#eaf3ff']} style={styles.background}>
         
+        {/* header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Image 
@@ -248,6 +280,7 @@ const DiarioScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
+        {/* área de conteúdo com keyboard avoiding */}
         <KeyboardAvoidingView 
           style={styles.keyboardAvoid}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -258,14 +291,16 @@ const DiarioScreen = ({ navigation, route }) => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             alwaysBounceVertical={true}
-          >   
+          >   
             <View style={styles.formContainer}>
               
+              {/* seção de título/data */}
               <View style={styles.titleSection}>
                 <Text style={styles.formTitle}>Como foi seu dia?</Text>
                 <Text style={styles.formDate}>{new Date().toLocaleDateString('pt-BR')}</Text>
               </View>
 
+              {/* seção de anotação de texto */}
               <View style={styles.inputSection}>
                 <Text style={styles.inputLabel}>Sua anotação</Text>
                 <TextInput
@@ -281,12 +316,12 @@ const DiarioScreen = ({ navigation, route }) => {
                 />
               </View>
 
+              {/* seção de humor */}
               <View style={styles.moodSection}>
                 <Text style={styles.inputLabel}>Como você está se sentindo?</Text>
                 <ScrollView 
                   horizontal 
                   showsHorizontalScrollIndicator={false}
-                  style={styles.moodScrollContainer}
                   contentContainerStyle={styles.moodScrollContent}
                 >
                   {moods.map((mood) => (
@@ -304,28 +339,23 @@ const DiarioScreen = ({ navigation, route }) => {
                         if (validationError) setValidationError('');
                       }}
                     >
-                    <Ionicons
-                      name={mood.icon}
-                      size={screenWidth > 400 ? (screenWidth > 500 ? 30 : 28) : 24}
-                      color={selectedMood?.name === mood.name ? '#000' : '#31356e'} 
-                    />
-                    <Text style={[
-                      styles.moodText, 
-                      selectedMood?.name === mood.name ? { 
-                        color: '#000', 
-                        fontWeight: 'bold' 
-                      } : {
-                        color: '#31356e', 
-                        fontWeight: 'bold' 
-                      }
-                    ]}>
-                      {mood.name}
-                    </Text>
+                      <Ionicons
+                        name={mood.icon}
+                        size={screenWidth > 400 ? (screenWidth > 500 ? 30 : 28) : 24}
+                        color={selectedMood?.name === mood.name ? '#000' : '#31356e'} 
+                      />
+                      <Text style={[
+                        styles.moodText, 
+                        selectedMood?.name === mood.name ? styles.selectedMoodText : styles.unselectedMoodText
+                      ]}>
+                        {mood.name}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>
 
+              {/* seção de imagem */}
               <View style={styles.imageSection}>
                 <Text style={styles.inputLabel}>Adicionar imagem (opcional)</Text>
                 <TouchableOpacity style={styles.imagePickerButton} onPress={handlePickImage}>
@@ -340,11 +370,13 @@ const DiarioScreen = ({ navigation, route }) => {
                 {newEntryImage && (
                   <View style={styles.imagePreviewContainer}>
                     <Text style={styles.previewLabel}>Pré-visualização:</Text>
+                    {/* a fonte da imagem pode ser uri local ou data url (base64) */}
                     <Image source={{ uri: newEntryImage }} style={styles.previewImage} />
                   </View>
                 )}
               </View>
 
+              {/* seção de erro de validação */}
               {validationError !== '' && (
                 <View style={styles.errorContainer}>
                   <Ionicons name="warning-outline" size={screenWidth > 400 ? 22 : 20} color="#ff3b30" />
@@ -352,6 +384,7 @@ const DiarioScreen = ({ navigation, route }) => {
                 </View>
               )}
 
+              {/* botão salvar */}
               <TouchableOpacity style={styles.saveButton} onPress={handleSaveEntry}>
                 <LinearGradient
                   colors={['#0e458c', '#1a5bb5']}
@@ -370,6 +403,7 @@ const DiarioScreen = ({ navigation, route }) => {
   );
 };
 
+// estilos
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -382,7 +416,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   
-  // HEADER - RESPONSIVO
+  // header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -400,15 +434,15 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 5,
   },
+  profileButton: {
+    padding: 5,
+  },
   backimage: {
     width: screenWidth > 400 ? (screenWidth > 500 ? 60 : 55) : 45,
     height: screenWidth > 400 ? (screenWidth > 500 ? 60 : 55) : 45,
     resizeMode: 'contain',
     tintColor: 'white',
-    transform: [{ scaleX: -1 }],
-  },
-  profileButton: {
-    padding: 5,
+    transform: [{ scaleX: -1 }], 
   },
   profileImage: {
     width: screenWidth > 400 ? (screenWidth > 500 ? 60 : 55) : 45,
@@ -417,19 +451,18 @@ const styles = StyleSheet.create({
     tintColor: 'white',
   },
 
-  // SCROLL CONTENT
+  // scroll content
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: screenWidth > 400 ? 25 : 20,
     paddingTop: screenWidth > 400 ? 20 : 15,
     paddingBottom: screenWidth > 400 ? 40 : 30,
-    height: 350
   },
   formContainer: {
     alignItems: 'center',
   },
 
-  // SEÇÃO DE TÍTULO
+  // seção de título
   titleSection: {
     alignItems: 'center',
     marginBottom: screenWidth > 400 ? 25 : 20,
@@ -449,7 +482,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Bree-Serif',
   },
 
-  // SEÇÃO DE INPUT
+  // seção de input
   inputSection: {
     width: '100%',
     marginBottom: screenWidth > 400 ? 30 : 25,
@@ -479,13 +512,10 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
-  // SEÇÃO DE HUMOR - SCROLL HORIZONTAL
+  // seção de humor - scroll horizontal
   moodSection: {
     width: '100%',
     marginBottom: screenWidth > 400 ? 25 : 20, 
-  },
-  moodScrollContainer: {
-    width: '100%',
   },
   moodScrollContent: {
     paddingHorizontal: 2,
@@ -514,8 +544,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Bree-Serif',
   },
+  selectedMoodText: {
+    color: '#000', 
+    fontWeight: 'bold',
+  },
+  unselectedMoodText: {
+    color: '#31356e', 
+    fontWeight: 'bold',
+  },
 
-  // SEÇÃO DE IMAGEM
+  // seção de imagem
   imageSection: {
     width: '100%',
     marginBottom: screenWidth > 400 ? 20 : 15, 
@@ -572,7 +610,7 @@ const styles = StyleSheet.create({
     borderColor: '#5691de',
   },
 
-  // ERRO
+  // seção de erro
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -596,7 +634,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // BOTÃO SALVAR
+  // botão salvar
   saveButton: {
     borderRadius: screenWidth > 400 ? 28 : 25,
     overflow: 'hidden',

@@ -18,9 +18,10 @@ import { Ionicons } from '@expo/vector-icons';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const userIcon = require('../assets/src/user.png');     
-const emailIcon = require('../assets/src/email.png');   
-const senhaIcon = require('../assets/src/senha.png');   
+// Assets de imagem
+const userIcon = require('../assets/src/user.png');     
+const emailIcon = require('../assets/src/email.png');   
+const senhaIcon = require('../assets/src/senha.png');   
 const logo = require('../assets/src/perfil.png');
 
 const RegisterScreen = ({ navigation }) => {
@@ -35,8 +36,16 @@ const RegisterScreen = ({ navigation }) => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   
-  const API_URL = 'http://172.28.144.1:3000';
+  // URL da API para o cadastro
+  const API_URL = 'http://172.20.112.1:3000';
 
+  // Função genérica para capturar input e limpar o erro do campo
+  const handleInputChange = (setter, field) => (text) => {
+    setter(text);
+    setErrors(prev => ({ ...prev, [field]: undefined }));
+  };
+
+  // Função para validar todos os campos antes de enviar
   const validateForm = () => {
     const newErrors = {};
     if (!username) newErrors.username = 'Nome de usuário é obrigatório';
@@ -66,12 +75,23 @@ const RegisterScreen = ({ navigation }) => {
       const data = await response.json();
 
       if (response.ok) {
+        // Sucesso: Alerta e navegação para Login
         Alert.alert('Sucesso', 'Cadastro realizado com sucesso! Faça login.');
         navigation.navigate('Login');
       } else {
-        Alert.alert('Erro no Cadastro', data.message || 'Erro ao tentar registrar. Tente outro email.');
+        // Falha: Tratamento de erro da API
+        const serverMessage = data.message || 'Erro ao tentar registrar. Tente outro email.';
+        
+        // Se o erro for relacionado ao email, exibe abaixo do campo email
+        if (serverMessage.includes('email') || serverMessage.includes('Email')) {
+            setErrors(prev => ({ ...prev, email: serverMessage }));
+        } else {
+            // Caso contrário, exibe um alerta geral
+            Alert.alert('Erro no Cadastro', serverMessage);
+        }
       }
     } catch (error) {
+      // Erro de rede/conexão
       console.error("Erro de conexão/fetch:", error);
       Alert.alert('Erro', 'Não foi possível conectar ao servidor. Verifique sua conexão e o IP da API.');
     } finally {
@@ -79,6 +99,7 @@ const RegisterScreen = ({ navigation }) => {
     }
   };
 
+  // Alterna a visibilidade da senha
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -109,6 +130,7 @@ const RegisterScreen = ({ navigation }) => {
                 <Text style={styles.instructionText}>Crie sua conta para continuar</Text>
               </View>
 
+              {/* INPUT NOME DE USUÁRIO */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={userIcon} style={styles.inputIcon} />
@@ -119,16 +141,17 @@ const RegisterScreen = ({ navigation }) => {
                   placeholderTextColor="rgba(255, 255, 255, 0.9)"
                   autoCapitalize="words"
                   value={username}
-                  onChangeText={setUsername}
+                  onChangeText={handleInputChange(setUsername, 'username')}
                   selectionColor="rgba(255, 255, 255, 0.6)"
                 />
               </View>
               {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
 
+              {/* INPUT EMAIL */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={emailIcon} style={styles.inputIcon} />
-                </View>
+                </View> 
                 <TextInput
                   style={styles.inputField}
                   placeholder="Email"
@@ -136,12 +159,13 @@ const RegisterScreen = ({ navigation }) => {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={handleInputChange(setEmail, 'email')} 
                   selectionColor="rgba(255, 255, 255, 0.6)"
                 />
               </View>
               {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
+              {/* INPUT SENHA */}
               <View style={styles.inputContainer}>
                 <View style={styles.iconBackground}>
                   <Image source={senhaIcon} style={styles.inputIcon} />
@@ -152,7 +176,7 @@ const RegisterScreen = ({ navigation }) => {
                   placeholderTextColor="rgba(255, 255, 255, 0.9)"
                   secureTextEntry={!showPassword}
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={handleInputChange(setPassword, 'password')}
                   selectionColor="rgba(255, 255, 255, 0.6)"
                 />
                 <TouchableOpacity onPress={toggleShowPassword} style={styles.eyeIcon}>
@@ -165,6 +189,7 @@ const RegisterScreen = ({ navigation }) => {
               </View>
               {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
+              {/* BOTÃO CADASTRAR */}
               <TouchableOpacity
                 style={styles.button}
                 onPress={handleRegister}
@@ -181,6 +206,7 @@ const RegisterScreen = ({ navigation }) => {
           </View>
         </ScrollView>
         
+        {/* NAVEGAÇÃO INFERIOR */}
         <View style={styles.tabContainerBottom}>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>
             <Text style={styles.inactiveTabTextBottom}>Entrar</Text>
@@ -298,22 +324,24 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#fff',
     fontSize: screenWidth > 400 ? (screenWidth > 500 ? 18 : 17) : 16,
-    paddingRight: -35,
+    paddingRight: 5, 
     fontFamily: 'Bree-Serif',
     paddingVertical: 0,
     fontWeight: 'normal',
   },
   eyeIcon: {
     padding: 10,
-    marginRight: 5,
+    marginRight: 80,
+    marginLeft: -20,
   },
+  // Estilo das mensagens de erro (próximo ao input)
   errorText: {
-    color: '#ff6b6b',
+    color: '#0e458c', 
+    fontWeight: 'bold', 
     alignSelf: 'flex-start',
-    marginBottom: screenHeight * 0.01,
-    marginLeft: 12,
+    marginBottom: screenHeight * 0.005, 
+    marginLeft: screenWidth * 0.01, 
     fontSize: screenWidth > 400 ? (screenWidth > 500 ? 15 : 14) : 13,
-    fontWeight: '500',
     fontFamily: 'Bree-Serif',
   },
   button: {

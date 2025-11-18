@@ -1,7 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, Image, ActivityIndicator, Animated, SafeAreaView, ScrollView, Dimensions, } from 'react-native';
+import { 
+  StyleSheet, 
+  View, 
+  Text, 
+  Image, 
+  ActivityIndicator, 
+  Animated, 
+  SafeAreaView, 
+  ScrollView, 
+  Dimensions, 
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFonts } from 'expo-font';
+import { useFonts } from 'expo-font'; 
 
 const { width, height } = Dimensions.get('window');
 const FONT_BASE_SIZE = width * 0.055;
@@ -13,6 +23,7 @@ const ApresentacaoScreen = ({ navigation }) => {
     'Bree-Serif': require('../assets/fonts/BreeSerif-Regular.ttf'),
   });
 
+  // Estados para controlar a opacidade e posição da animação
   const [logoOpacity] = useState(new Animated.Value(0));
   const [sereneOpacity] = useState(new Animated.Value(0));
   const [textOpacity] = useState(new Animated.Value(0));
@@ -21,10 +32,10 @@ const ApresentacaoScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (fontsLoaded) {
-      // Animação da logo vindo da esquerda
+      // 1. Animação de entrada da logo
       Animated.parallel([
         Animated.timing(logoOpacity, {
-          toValue: 1, // 1 = totalmente opaco
+          toValue: 1, 
           duration: 400,
           useNativeDriver: true,
         }),
@@ -34,10 +45,10 @@ const ApresentacaoScreen = ({ navigation }) => {
           useNativeDriver: true,
         })
       ]).start(() => {
-        // Animação do SERENE vindo da direita
+        // 2. Animação de entrada do texto "SERENE"
         Animated.parallel([
           Animated.timing(sereneOpacity, {
-            toValue: 1, // 1 = totalmente opaco
+            toValue: 1, 
             duration: 400,
             useNativeDriver: true,
           }),
@@ -47,27 +58,28 @@ const ApresentacaoScreen = ({ navigation }) => {
             useNativeDriver: true,
           })
         ]).start(() => {
-          // Pausa para mostrar o logo + SERENE (ambos opacos)
+          // 3. Pausa para visualização
           setTimeout(() => {
-            // Fade out do logo + SERENE (só aqui ficam transparentes)
+            // 4. Animação de fade out da logo e "SERENE"
             Animated.parallel([
               Animated.timing(logoOpacity, {
-                toValue: 0, // 0 = transparente
+                toValue: 0, 
                 duration: 300,
                 useNativeDriver: true,
               }),
               Animated.timing(sereneOpacity, {
-                toValue: 0, // 0 = transparente
+                toValue: 0, 
                 duration: 300,
                 useNativeDriver: true,
               })
             ]).start(() => {
-              // Aparece a frase final
+              // 5. Animação de fade in da frase final
               Animated.timing(textOpacity, {
-                toValue: 1, // 1 = totalmente opaco
+                toValue: 1, 
                 duration: 500,
                 useNativeDriver: true,
               }).start(() => {
+                // 6. Navega para a tela de Login após um breve atraso
                 setTimeout(() => {
                   navigation.navigate('Login');
                 }, 1000);
@@ -79,6 +91,7 @@ const ApresentacaoScreen = ({ navigation }) => {
     }
   }, [fontsLoaded, logoOpacity, sereneOpacity, textOpacity, logoPosition, serenePosition, navigation]);
 
+  // Exibe um indicador de carregamento enquanto a fonte não estiver pronta
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
@@ -125,7 +138,7 @@ const ApresentacaoScreen = ({ navigation }) => {
               </Animated.View>
             </View>
             
-            {/* Frase final */}
+            {/* Frase final da Apresentação */}
             <Animated.View style={[styles.textContainer, { opacity: textOpacity }]}>
               <Text style={styles.text}>
                 SERENIDADE AO SEU ALCANCE
@@ -139,6 +152,7 @@ const ApresentacaoScreen = ({ navigation }) => {
   );
 };
 
+// estilos
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -165,7 +179,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#b9d2ff',
   },
   
-  // Container para logo + SERENE lado a lado
+  // Estilos da primeira animação (Logo + Serene)
   logoSereneContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -190,11 +204,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Bree-Serif',
     fontSize: width > 400 ? (width > 500 ? 46 : 42) : 36,
     color: '#84a9da',
-    fontWeight: 'bold',
+    fontWeight: 'bold', 
     marginLeft: 15,
   },
   
-  // Frase final
   textContainer: {
     position: 'absolute',
     alignItems: 'center',
@@ -206,9 +219,9 @@ const styles = StyleSheet.create({
     fontSize: FONT_BASE_SIZE > 24 ? 24 : FONT_BASE_SIZE, 
     color: '#0e458c',
     marginHorizontal: 30, 
+    fontWeight: 'bold', 
     lineHeight: FONT_BASE_SIZE * 1.4,
     textAlign: 'center',
-    fontWeight: 'bold', 
   },
 });
 

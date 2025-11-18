@@ -16,93 +16,232 @@ import { Ionicons } from '@expo/vector-icons';
 import { PieChart } from 'react-native-chart-kit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// constantes de layout
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height; 
 
-const HOST_IP = '172.28.144.1'; 
+// configuração da api
+const HOST_IP = ' 172.20.112.1'; 
 const API_URL = `http://${HOST_IP}:3000`;
 
+// importação de imagens estáticas
 const profileImage = require('../assets/src/perfil.png'); 
 const roboImage = require('../assets/src/robo.png'); 
 
-const RespiracaoProfundaImage = require('../assets/src/RespiracaoProfunda.png');
-const MeditacaoGuiadaImage = require('../assets/src/MeditacaoGuiada.png');
-const LeituraRelaxanteImage = require('../assets/src/LeituraRelaxante.png');
-const VisualizacaoPositivaImage = require('../assets/src/VisualizacaoPositiva.png');
-const AlongamentoSuaveImage = require('../assets/src/AlongamentoSuave.png');
-const MusicaRelaxanteImage = require('../assets/src/MusicaRelaxante.png');
-const DiarioDeGratidaoImage = require('../assets/src/DiarioDeGratidao.png');
-const CaminhadaMindfulImage = require('../assets/src/CaminhadaMindful.png');
+const respiracaoProfundaImage = require('../assets/src/RespiracaoProfunda.png');
+const meditacaoGuiadaImage = require('../assets/src/MeditacaoGuiada.png');
+const leituraRelaxanteImage = require('../assets/src/LeituraRelaxante.png');
+const visualizacaoPositivaImage = require('../assets/src/VisualizacaoPositiva.png');
+const alongamentoSuaveImage = require('../assets/src/AlongamentoSuave.png');
+const musicaRelaxanteImage = require('../assets/src/MusicaRelaxante.png');
+const diarioDeGratidaoImage = require('../assets/src/DiarioDeGratidao.png');
+const caminhadaMindfulImage = require('../assets/src/CaminhadaMindful.png');
+const banhoRelaxanteImage = require('../assets/src/BanhoRelaxante.png');
+const tecnica54321Image = require('../assets/src/Tecnica54321.png');
+const relaxamentoMuscularProgressivoImage = require('../assets/src/RelaxamentoMuscularProgressivo.png');
+const aromaterapiaSimplesImage = require('../assets/src/AromaterapiaSimples.png');
+const escritaLivreImage = require('../assets/src/EscritaLivre.png');
+const observacaoDaNaturezaImage = require('../assets/src/ObservacaoDaNatureza.png');
+const tecnicaDeRespiracao478Image = require('../assets/src/TecnicaDeRespiracao478.png');
+const yogaSimplesImage = require('../assets/src/YogaSimples.png');
+const pinturaOuDesenhoLivreImage = require('../assets/src/PinturaOuDesenhoLivre.png');
+const contagemParaAcalmarImage = require('../assets/src/ContagemParaAcalmar.png');
+const miniPausaDigitalImage = require('../assets/src/MiniPausaDigital.png');
+const observacaoDeSensacoesCorporaisImage = require('../assets/src/ObservacaoDeSensacoesCorporais.png');
 
+// dados de emoções
 const emotions = [
-  { name: 'Feliz', key: 'happy', icon: 'happy-outline', color: '#FFF3B0' },
-  { name: 'Triste', key: 'sad', icon: 'sad-outline', color: '#A7C7E7' },
-  { name: 'Estressado', key: 'stressed', icon: 'flash-outline', color: '#F4A6A6' },
-  { name: 'Calmo', key: 'calm', icon: 'leaf-outline', color: '#B5EAD7' },
-  { name: 'Ansioso', key: 'anxious', icon: 'alert-circle-outline', color: '#C8B6E2' },
-  { name: 'Confuso', key: 'confused', icon: 'help-circle-outline', color: '#FFD6A5' },
+  { name: 'feliz', key: 'happy', icon: 'happy-outline', color: '#FFF3B0' },
+  { name: 'triste', key: 'sad', icon: 'sad-outline', color: '#A7C7E7' },
+  { name: 'estressado', key: 'stressed', icon: 'flash-outline', color: '#F4A6A6' },
+  { name: 'calmo', key: 'calm', icon: 'leaf-outline', color: '#B5EAD7' },
+  { name: 'ansioso', key: 'anxious', icon: 'alert-circle-outline', color: '#C8B6E2' },
+  { name: 'confuso', key: 'confused', icon: 'help-circle-outline', color: '#FFD6A5' },
 ];
 
+// lista de todas as recomendações de técnicas
 const todasRecomendacoes = [
   {
-    title: 'Respiração Profunda',
-    image: RespiracaoProfundaImage,
-    objective: 'Reduz ansiedade, acalma o sistema nervoso e melhora foco.',
-    descricao: '1. Sente-se ou deite-se confortável, mantendo a coluna ereta.\n2. Coloque uma mão no peito e outra no abdômen.\n3. Inspire pelo nariz contando até 4.\n4. Segure a respiração por 2 segundos.\n5. Expire lentamente pela boca contando até 6.\n6. Repita de 5 a 10 ciclos.\n7. Dica: traga atenção de volta à respiração se a mente divagar.',
+    title: 'respiração profunda',
+    image: respiracaoProfundaImage,
+    objective: 'reduz ansiedade, acalma o sistema nervoso e melhora foco.',
+    descricao: '1. sente-se ou deite-se confortável, mantendo a coluna ereta.\n2. coloque uma mão no peito e outra no abdômen.\n3. inspire pelo nariz contando até 4.\n4. segure a respiração por 2 segundos.\n5. expire lentamente pela boca contando até 6.\n6. repita de 5 a 10 ciclos.\n7. dica: traga atenção de volta à respiração se a mente divagar.',
   },
   {
-    title: 'Meditação Guiada',
-    image: MeditacaoGuiadaImage,
-    objective: 'Acalma a mente, melhora foco e reduz estresse.',
-    descricao: '1. Sente-se ou deite-se em local silencioso.\n2. Feche os olhos e respire profundamente 2–3 vezes.\n3. Concentre-se na respiração, observando o ar entrar e sair.\n4. Observe pensamentos sem se envolver.\n5. Mantenha postura ereta e relaxe ombros e mandíbula.\n6. Permaneça de 5 a 15 minutos.\n7. Use música suave ou app de meditação se desejar.',
+    title: 'meditação guiada',
+    image: meditacaoGuiadaImage,
+    objective: 'acalma a mente, melhora foco e reduz estresse.',
+    descricao: '1. sente-se ou deite-se em local silencioso.\n2. feche os olhos e respire profundamente 2–3 vezes.\n3. concentre-se na respiração, observando o ar entrar e sair.\n4. observe pensamentos sem se envolver.\n5. mantenha postura ereta e relaxe ombros e mandíbula.\n6. permaneça de 5 a 15 minutos.\n7. use música suave ou app de meditação se desejar.',
   },
   {
-    title: 'Leitura Relaxante',
-    image: LeituraRelaxanteImage,
-    objective: 'Oferece descanso mental e uma pausa criativa.',
-    descricao: '1. Escolha um livro, revista ou texto leve.\n2. Sente-se mantendo boa postura.\n3. Desligue notificações para evitar distrações.\n4. Leia devagar, atentando-se ao significado.\n5. Reserve 10 a 20 minutos.\n6. Dica: ficção ou poesia ajudam a desacelerar a mente.',
+    title: 'leitura relaxante',
+    image: leituraRelaxanteImage,
+    objective: 'oferece descanso mental e uma pausa criativa.',
+    descricao: '1. escolha um livro, revista ou texto leve.\n2. sente-se mantendo boa postura.\n3. desligue notificações para evitar distrações.\n4. leia devagar, atentando-se ao significado.\n5. reserve 10 a 20 minutos.\n6. dica: ficção ou poesia ajudam a desacelerar a mente.',
   },
   {
-    title: 'Visualização Positiva',
-    image: VisualizacaoPositivaImage,
-    objective: 'Reduz tensão mental, melhora humor e foco.',
-    descricao: '1. Sente-se/deite-se em local calmo e respire 2–3 vezes.\n2. Feche os olhos e imagine um lugar seguro e relaxante.\n3. Explore cores, sons, cheiros e temperatura.\n4. Imagine-se interagindo e sentindo paz.\n5. Permaneça por 3 a 10 minutos.\n6. Use sons da natureza ou música relaxante.',
+    title: 'visualização positiva',
+    image: visualizacaoPositivaImage,
+    objective: 'reduz tensão mental, melhora humor e foco.',
+    descricao: '1. sente-se/deite-se em local calmo e respire 2–3 vezes.\n2. feche os olhos e imagine um lugar seguro e relaxante.\n3. explore cores, sons, cheiros e temperatura.\n4. imagine-se interagindo e sentindo paz.\n5. permaneça por 3 a 10 minutos.\n6. use sons da natureza ou música relaxante.',
   },
   {
-    title: 'Alongamento Suave',
-    image: AlongamentoSuaveImage,
-    objective: 'Reduz tensão muscular e melhora circulação.',
-    descricao: '1. Posicione-se sentado(a) ou em pé com coluna ereta.\n2. Incline lentamente a cabeça para cada lado.\n3. Faça círculos lentos com os ombros e braços.\n4. Incline-se suavemente à frente e para trás.\n5. Mantenha cada posição 10–20 segundos.\n6. Movimentos suaves, sem forçar.',
+    title: 'alongamento suave',
+    image: alongamentoSuaveImage,
+    objective: 'reduz tensão muscular e melhora circulação.',
+    descricao: '1. posicione-se sentado(a) ou em pé com coluna ereta.\n2. incline lentamente a cabeça para cada lado.\n3. faça círculos lentos com os ombros e braços.\n4. incline-se suavemente à frente e para trás.\n5. mantenha cada posição 10–20 segundos.\n6. movimentos suaves, sem forçar.',
   },
   {
-    title: 'Música Relaxante',
-    image: MusicaRelaxanteImage,
-    objective: 'Alivia estresse e induz sensação de calma.',
-    descricao: '1. Escolha música instrumental ou sons da natureza.\n2. Coloque fones e acomode-se confortavelmente.\n3. Respire lentamente acompanhando o ritmo.\n4. Foque em melodias, instrumentos e texturas.\n5. Ouça por 5 a 15 minutos.\n6. Combine com respiração profunda ou alongamentos.',
+    title: 'música relaxante',
+    image: musicaRelaxanteImage,
+    objective: 'alivia estresse e induz sensação de calma.',
+    descricao: '1. escolha música instrumental ou sons da natureza.\n2. coloque fones e acomode-se confortavelmente.\n3. respire lentamente acompanhando o ritmo.\n4. foque em melodias, instrumentos e texturas.\n5. ouça por 5 a 15 minutos.\n6. combine com respiração profunda ou alongamentos.',
   },
   {
-    title: 'Diário de Gratidão',
-    image: DiarioDeGratidaoImage,
-    objective: 'Melhora bem-estar emocional e foco no positivo.',
-    descricao: '1. Pegue um caderno ou app de notas.\n2. Liste 3 a 5 coisas pelas quais é grato.\n3. Reflita brevemente sobre cada item.\n4. Evite julgamentos; registre apenas o positivo.\n5. Leve 5 a 10 minutos.\n6. Repita diariamente ou quando sentir estresse.',
+    title: 'diário de gratidão',
+    image: diarioDeGratidaoImage,
+    objective: 'melhora bem-estar emocional e foco no positivo.',
+    descricao: '1. pegue um caderno ou app de notas.\n2. liste 3 a 5 coisas pelas quais é grato.\n3. reflita brevemente sobre cada item.\n4. evite julgamentos; registre apenas o positivo.\n5. leve 5 a 10 minutos.\n6. repita diariamente ou quando sentir estresse.',
   },
   {
-    title: 'Caminhada Mindful',
-    image: CaminhadaMindfulImage,
-    objective: 'Relaxa corpo e mente, promove atenção plena.',
-    descricao: '1. Escolha um local seguro e tranquilo.\n2. Dê passos lentos, sentindo o contato dos pés com o chão.\n3. Respire profundamente, notando o ar entrar e sair.\n4. Observe sounds, colors e aromas sem julgar.\n5. Caminhe por 5 a 15 minutos.\n6. Evite usar o celular durante a prática.',
+    title: 'caminhada mindful',
+    image: caminhadaMindfulImage,
+    objective: 'relaxa corpo e mente, promove atenção plena.',
+    descricao: '1. escolha um local seguro e tranquilo.\n2. dê passos lentos, sentindo o contato dos pés com o chão.\n3. respire profundamente, notando o ar entrar e sair.\n4. observe sounds, colors e aromas sem julgar.\n5. caminhe por 5 a 15 minutos.\n6. evite usar o celular durante a prática.',
+  },
+  {
+    title: 'banho relaxante',
+    image: banhoRelaxanteImage,
+    objective: 'alivia tensão física e mental.',
+    descricao: '1. prepare um banho morno em ambiente tranquilo.\n2. concentre-se na sensação da água na pele.\n3. respire profundamente, liberando tensões.\n4. permaneça 5 a 20 minutos.\n5. use sabonetes aromáticos, velas ou óleos essenciais.',
+  },
+  {
+    title: 'técnica 5-4-3-2-1',
+    image: tecnica54321Image,
+    objective: 'reduz ansiedade, aumenta foco no presente.',
+    descricao: '1. observe 5 coisas visíveis.\n2. note 4 coisas que consegue tocar.\n3. ouça 3 sons ao redor.\n4. identifique 2 cheiros próximos.\n5. concentre-se em 1 sabor ou sensação corporal.\n6. use em momentos de ansiedade ou estresse.',
+  },
+  {
+    title: 'relaxamento muscular progressivo',
+    image: relaxamentoMuscularProgressivoImage,
+    objective: 'reduz tensão muscular e alivia estresse.',
+    descricao: '1. deite-se ou sente-se confortavelmente.\n2. contraia pés por 5s e relaxe.\n3. suba por pernas, glúteos, abdômen e costas.\n4. prossiga com braços, mãos, pescoço e rosto.\n5. respire lenta e profundamente durante todo o processo.\n6. foque na diferença entre tensão e relaxamento.',
+  },
+  {
+    title: 'aromaterapia simples',
+    image: aromaterapiaSimplesImage,
+    objective: 'estimula relaxamento através do olfato.',
+    descricao: '1. escolha aroma relaxante (lavanda, camomila, hortelã).\n2. acenda vela, use difusor ou inalador.\n3. sente-se confortavelmente e respire fundo.\n4. concentre-se na sensação de calma.\n5. permaneça 5 a 10 minutos.\n6. evite aromas que causem desconforto.',
+  },
+  {
+    title: 'escrita livre',
+    image: escritaLivreImage,
+    objective: 'libera pensamentos e emoções, proporcionando clareza mental.',
+    descricao: '1. pegue papel e caneta ou app de notas.\n2. escreva sem regras gramaticais.\n3. registre pensamentos, sentimentos ou fatos do dia.\n4. continue por 5 a 10 minutos.\n5. releia apenas se desejar, sem julgamentos.',
+  },
+  {
+    title: 'observação da natureza',
+    image: observacaoDaNaturezaImage,
+    objective: 'reduz estresse e aumenta sensação de bem-estar.',
+    descricao: '1. sente-se perto de uma janela, jardim ou parque.\n2. observe árvores, pássaros, nuvens e flores.\n3. respire profundamente, percebendo o ambiente.\n4. permaneça 5 a 15 minutos.\n5. note detalhes geralmente despercebidos.',
+  },
+  {
+    title: 'técnica de respiração 4-7-8',
+    image: tecnicaDeRespiracao478Image,
+    objective: 'acalma o sistema nervoso rapidamente.',
+    descricao: '1. sente-se ou deite-se com coluna ereta.\n2. inspire pelo nariz contando até 4.\n3. segure a respiração contando até 7.\n4. expire pela boca contando até 8.\n5. repita 4 ciclos.\n6. ideal antes de dormir ou em picos de ansiedade.',
+  },
+  {
+    title: 'yoga simples',
+    image: yogaSimplesImage,
+    objective: 'relaxa corpo e mente, melhora postura e flexibilidade.',
+    descricao: '1. separe um tapete e vista roupas confortáveis.\n2. escolha posturas simples.\n3. sincronize movimento com respiração profunda.\n4. mantenha cada postura 20–30s.\n5. pratique 10 a 20 minutos.\n6. movimente-se sem dor e sem pressa.',
+  },
+  {
+    title: 'pintura ou desenho livre',
+    image: pinturaOuDesenhoLivreImage,
+    objective: 'expressa emoções e reduz tensão mental.',
+    descricao: '1. separe papel, lápis, canetas ou tintas.\n2. desenhe/pinte sem buscar perfeição.\n3. foque em cores, formas e movimentos.\n4. crie 10 a 20 minutos.\n5. ouça música calma para ampliar criatividade.',
+  },
+  {
+    title: 'contagem para acalmar',
+    image: contagemParaAcalmarImage,
+    objective: 'reduz ansiedade e pensamentos acelerados.',
+    descricao: '1. sente-se ou deite-se confortavelmente.\n2. inspire profundamente e conte mentalmente até 10.\n3. expire devagar e recomece.\n4. mantenha 2 a 5 minutos.\n5. associe com respiração profunda para efeito maior.',
+  },
+  {
+    title: 'mini-pausa digital',
+    image: miniPausaDigitalImage,
+    objective: 'reduz sobrecarga mental de telas e notificações.',
+    descricao: '1. afaste-se de celular, computador e tv.\n2. sente-se ou caminhe em silêncio, respirando profundamente.\n3. observe ambiente, sons e sensações.\n4. fique 5 a 10 minutos desconectado.\n5. desative notificações temporariamente.',
+  },
+  {
+    title: 'observação de sensações corporais',
+    image: observacaoDeSensacoesCorporaisImage,
+    objective: 'desenvolve atenção plena e relaxamento profundo.',
+    descricao: '1. deite-se ou sente-se e feche os olhos.\n2. faça um scan corporal da cabeça aos pés.\n3. identifique áreas de tensão e relaxe.\n4. respire profundamente durante todo o exercício.\n5. pratique 5 a 10 minutos.\n6. combine com música suave ou respiração profunda.',
   },
 ];
 
+// mapeamento de recomendações por emoção
 const emotionRecommendations = {
-  happy: ['Leitura Relaxante', 'Diário de Gratidão', 'Caminhada Mindful', 'Música Relaxante'],
-  sad: ['Leitura Relaxante', 'Diário de Gratidão', 'Visualização Positiva', 'Música Relaxante'],
-  stressed: ['Respiração Profunda', 'Meditação Guiada', 'Alongamento Suave', 'Música Relaxante'],
-  calm: ['Leitura Relaxante', 'Caminhada Mindful', 'Meditação Guiada', 'Diário de Gratidão'],
-  anxious: ['Respiração Profunda', 'Meditação Guiada', 'Visualização Positiva', 'Música Relaxante'],
-  confused: ['Meditação Guiada', 'Visualização Positiva', 'Leitura Relaxante', 'Caminhada Mindful'],
+  happy: [
+    'diário de gratidão',
+    'caminhada mindful',
+    'leitura relaxante',
+    'pintura ou desenho livre',
+    'observação da natureza',
+    'música relaxante',
+  ], 
+  sad: [
+    'escrita livre',
+    'visualização positiva',
+    'banho relaxante',
+    'música relaxante',
+    'alongamento suave',
+    'diário de gratidão',
+    'pintura ou desenho livre',
+  ], 
+  stressed: [
+    'respiração profunda',
+    'meditação guiada',
+    'relaxamento muscular progressivo',
+    'aromaterapia simples',
+    'yoga simples',
+    'observação da natureza',
+    'mini-pausa digital',
+    'leitura relaxante',
+  ], 
+  calm: [
+    'meditação guiada',
+    'observação de sensações corporais',
+    'caminhada mindful',
+    'diário de gratidão',
+    'leitura relaxante',
+    'aromaterapia simples',
+  ], 
+  anxious: [
+    'técnica 5-4-3-2-1',
+    'técnica de respiração 4-7-8',
+    'respiração profunda',
+    'contagem para acalmar',
+    'relaxamento muscular progressivo',
+    'meditação guiada',
+    'banho relaxante',
+    'mini-pausa digital',
+  ], 
+  confused: [
+    'escrita livre',
+    'meditação guiada',
+    'caminhada mindful',
+    'visualização positiva',
+    'leitura relaxante',
+    'mini-pausa digital',
+    'observação da natureza',
+  ], 
 };
 
+// função para obter uma recomendação aleatória
 const getRecommendation = (emotionKey) => {
   const recommendations = emotionRecommendations[emotionKey];
   if (recommendations && recommendations.length > 0) {
@@ -112,6 +251,7 @@ const getRecommendation = (emotionKey) => {
   return todasRecomendacoes[0];
 };
 
+// configuração do gráfico
 const chartConfig = {
     backgroundGradientFrom: "#fff",
     backgroundGradientTo: "#fff",
@@ -121,7 +261,9 @@ const chartConfig = {
     useShadowColorFromDataset: false 
 };
 
+// componente principal
 const HomeScreen = ({ navigation }) => {
+  // estados
   const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedTechnique, setSelectedTechnique] = useState(null);
@@ -130,6 +272,9 @@ const HomeScreen = ({ navigation }) => {
   const [lastEmotion, setLastEmotion] = useState(null);
   const [currentRecommendation, setCurrentRecommendation] = useState(null);
 
+  // funções de carregamento de dados
+
+  // busca o id do usuário no asyncstorage
   const getUserId = async () => {
     try {
       const id = await AsyncStorage.getItem('userId');
@@ -138,50 +283,50 @@ const HomeScreen = ({ navigation }) => {
         setUserId(userIdNum);
         return userIdNum;
       }
-      console.warn('ID do usuário não encontrado no AsyncStorage.');
+      console.warn('id do usuário não encontrado no asyncstorage.');
       return null;
     } catch (e) {
-      console.error('Erro ao buscar ID do usuário:', e);
+      console.error('erro ao buscar id do usuário:', e);
       return null;
     }
   };
 
-  // Carregar última emoção registrada
+  // carrega última emoção registrada e gera recomendação
   const loadLastEmotion = useCallback(async (currentUserId) => {
     try {
-      console.log(`🔍 Buscando última emoção para o usuário ${currentUserId}...`);
+      console.log(`🔍 buscando última emoção para o usuário ${currentUserId}...`);
       const response = await fetch(`${API_URL}/api/recent-moods/${currentUserId}`);
       
       if (!response.ok) {
-        throw new Error(`Erro HTTP: ${response.status}`);
+        throw new Error(`erro http: ${response.status}`);
       }
       
       const recentMoods = await response.json();
       
       if (recentMoods.length > 0) {
-        const lastMood = recentMoods[0]; // A primeira é a mais recente
+        const lastMood = recentMoods[0]; // a primeira é a mais recente
         const emotion = emotions.find(e => e.key === lastMood.mood_key);
         
         if (emotion) {
           setLastEmotion(emotion);
           const recommendation = getRecommendation(emotion.key);
           setCurrentRecommendation(recommendation);
-          console.log(`✅ Última emoção: ${emotion.name} - Recomendação: ${recommendation.title}`);
+          console.log(`✅ última emoção: ${emotion.name} - recomendação: ${recommendation.title}`);
         }
       } else {
         setLastEmotion(null);
         setCurrentRecommendation(null);
-        console.log('ℹ️ Nenhuma emoção registrada ainda');
+        console.log('ℹ️ nenhuma emoção registrada ainda');
       }
       
     } catch (error) {
-      console.error('❌ Erro ao carregar última emoção:', error);
+      console.error('❌ erro ao carregar última emoção:', error);
       setLastEmotion(null);
       setCurrentRecommendation(null);
     }
   }, []);
 
-  // Carregar dados do gráfico
+  // carrega dados para o gráfico de pizza
   const loadChartData = useCallback(async () => {
     const currentUserId = await getUserId();
     
@@ -191,11 +336,11 @@ const HomeScreen = ({ navigation }) => {
     }
 
     try {
-      console.log(`🔍 Buscando dados do diário para o usuário ${currentUserId}...`);
+      console.log(`🔍 buscando dados do diário para o usuário ${currentUserId}...`);
       const response = await fetch(`${API_URL}/api/diary/${currentUserId}`);
       
       if (!response.ok) {
-        throw new Error(`Erro HTTP: ${response.status}`);
+        throw new Error(`erro http: ${response.status}`);
       }
       
       const diaryEntries = await response.json();
@@ -217,12 +362,13 @@ const HomeScreen = ({ navigation }) => {
       setChartData(formattedData);
       
     } catch (error) {
-      console.error('❌ Erro ao carregar dados do gráfico da API:', error);
-      Alert.alert('Erro de Conexão', 'Não foi possível carregar os registros de humor do servidor. Verifique sua conexão ou o servidor.', [{ text: 'OK' }]);
+      console.error('❌ erro ao carregar dados do gráfico da api:', error);
+      Alert.alert('erro de conexão', 'não foi possível carregar os registros de humor do servidor. verifique sua conexão ou o servidor.', [{ text: 'ok' }]);
       setChartData(getInitialChartData());
     }
   }, []);
 
+  // dados iniciais para o gráfico (todos zerados)
   const getInitialChartData = () => {
       return emotions.map(emotion => ({
           name: emotion.name,
@@ -233,7 +379,7 @@ const HomeScreen = ({ navigation }) => {
       }));
   }
 
-  // Carregar todos os dados
+  // useeffect: carregamento inicial e ao focar na tela
   useEffect(() => {
     const loadAllData = async () => {
       const currentUserId = await getUserId();
@@ -245,11 +391,15 @@ const HomeScreen = ({ navigation }) => {
 
     loadAllData();
     
+    // recarrega os dados toda vez que a tela recebe o foco
     const focusListener = navigation.addListener('focus', loadAllData);
 
     return () => navigation.removeListener('focus', focusListener);
   }, [navigation, loadChartData, loadLastEmotion]);
 
+  // handlers de interação
+
+  // lida com a seleção de uma emoção (navega para a tela de diário)
   const handleEmotionSelect = (emotion) => {
     setSelectedEmotion(emotion);
     navigation.navigate('DiarioScreen', { 
@@ -258,6 +408,7 @@ const HomeScreen = ({ navigation }) => {
     });
   };
 
+  // abre o modal de recomendação
   const handleRecommendationPress = () => {
     if (lastEmotion && currentRecommendation) {
       setSelectedTechnique(currentRecommendation);
@@ -265,15 +416,17 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  // Texto da recomendação baseado na última emoção
+  // texto da recomendação
   const getRecommendationText = () => {
     if (!lastEmotion || !currentRecommendation) {
-      return 'REGISTRE SUA PRIMEIRA EMOÇÃO PARA VER UMA RECOMENDAÇÃO PERSONALIZADA';
+      return 'registre sua primeira emoção para ver uma recomendação personalizada';
     }
     
-    return `BASEADO NA SUA ÚLTIMA EMOÇÃO (${lastEmotion.name.toUpperCase()})\n${currentRecommendation.title}`;
+    // retorna o título da técnica em letras maiúsculas para o card (estilo visual)
+    return currentRecommendation.title.toUpperCase();
   };
 
+  // modal de recomendação
   const RecommendationModal = () => (
     <Modal
       animationType="slide"
@@ -302,12 +455,12 @@ const HomeScreen = ({ navigation }) => {
             </View>
             
             <View style={styles.objectiveSection}>
-              <Text style={styles.objectiveTitle}>Objetivo</Text>
+              <Text style={styles.objectiveTitle}>objetivo</Text>
               <Text style={styles.objectiveText}>{selectedTechnique?.objective}</Text>
             </View>
             
             <View style={styles.descriptionSection}>
-              <Text style={styles.descriptionTitle}>Como Fazer</Text>
+              <Text style={styles.descriptionTitle}>como fazer</Text>
               <Text style={styles.descriptionText}>{selectedTechnique?.descricao}</Text>
             </View>
           </ScrollView>
@@ -316,6 +469,7 @@ const HomeScreen = ({ navigation }) => {
     </Modal>
   );
 
+  // renderização principal
   return (
     <SafeAreaView style={styles.safeArea}>
       <LinearGradient
@@ -343,7 +497,7 @@ const HomeScreen = ({ navigation }) => {
           >
             
             <View style={styles.emotionSection}>
-              <Text style={styles.emotionQuestion}>COMO ESTÁ SENDO O SEU DIA?</Text>
+              <Text style={styles.emotionQuestion}>como está sendo o seu dia?</Text>
               
               <ScrollView 
                 horizontal 
@@ -383,7 +537,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.chartContainer}>
-              <Text style={styles.chartTitle}>MEUS REGISTROS</Text>
+              <Text style={styles.chartTitle}>meus registros</Text>
               
               <View style={styles.chartInnerContainer}>
                 {chartData.length > 0 && chartData.some(item => item.count > 0) ? (
@@ -402,9 +556,9 @@ const HomeScreen = ({ navigation }) => {
                   <View style={styles.emptyChartContainer}>
                     <Ionicons name="stats-chart-outline" size={50} color="#ccc" />
                     <Text style={styles.emptyChartText}>
-                      Nenhum registro ainda{'\n'}
+                      nenhum registro ainda{'\n'}
                       <Text style={styles.emptyChartSubtext}>
-                        Comece registrando suas emoções no diário!
+                        comece registrando suas emoções no diário!
                       </Text>
                     </Text>
                   </View>
@@ -419,7 +573,7 @@ const HomeScreen = ({ navigation }) => {
                   colors={['#0e458c', '#1a5bb5']}
                   style={styles.viewNotesGradient}
                 >
-                  <Text style={styles.viewNotesText}>VER MINHAS ANOTAÇÕES</Text>
+                  <Text style={styles.viewNotesText}>ver minhas anotações</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -433,7 +587,7 @@ const HomeScreen = ({ navigation }) => {
               disabled={!lastEmotion}
             >
               <View style={styles.recommendationHeader}>
-                <Text style={styles.recommendationTitle}>RECOMENDAÇÃO DO DIA</Text>
+                <Text style={styles.recommendationTitle}>recomendação do dia</Text>
               </View>
               <View style={styles.recommendationContent}>
                 <View style={styles.recommendationImageContainer}>
@@ -482,6 +636,7 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
+//estilos
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -518,6 +673,7 @@ const styles = StyleSheet.create({
     fontSize: screenWidth > 400 ? screenWidth > 500 ? 44 : 40 : 32,
     fontWeight: 'bold',
     color: 'white',
+    fontFamily: 'breeserif',
   },
   profileButton: {
     padding: 5,
@@ -540,6 +696,7 @@ const styles = StyleSheet.create({
     color: '#0c4793',
     textAlign: 'center',
     marginBottom: screenWidth > 400 ? 20 : 15,
+    fontFamily: 'breeserif',
   },
   moodScrollContainer: {
     width: '100%',
@@ -591,6 +748,7 @@ const styles = StyleSheet.create({
     color: '#0e458c',
     textAlign: 'center',
     marginBottom: screenWidth > 400 ? 15 : 10,
+    fontFamily: 'breeserif',
   },
   chartInnerContainer: {
     alignItems: 'center',
@@ -662,6 +820,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     textTransform: 'uppercase',
+    fontFamily: 'breeserif',
   },
   recommendationContent: {
     flexDirection: 'row',
@@ -682,6 +841,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'uppercase',
     lineHeight: 18,
+    fontFamily: 'breeserif',
   },
   recommendationImageContainer: {
     justifyContent: 'center',
@@ -728,6 +888,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     flex: 1,
+    fontFamily: 'breeserif',
   },
   closeButton: {
     padding: 5,
@@ -740,10 +901,10 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   techniqueImage: {
-    width: 120,
+    width: 120, 
     height: 120,
     resizeMode: 'contain',
-  },
+  },  
   objectiveSection: {
     padding: 20,
     borderBottomWidth: 1,
@@ -754,6 +915,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     marginBottom: 10,
+    fontFamily: 'breeserif',
   },
   objectiveText: {
     fontSize: 16,
@@ -768,6 +930,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     marginBottom: 10,
+    fontFamily: 'breeserif',
   },
   descriptionText: {
     fontSize: 16,
@@ -806,5 +969,5 @@ const styles = StyleSheet.create({
     tintColor: '#0e458c',
   },
 });
-
+  
 export default HomeScreen;
