@@ -457,6 +457,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenWidth > 400 ? 25 : 20,
     paddingTop: screenWidth > 400 ? 20 : 15,
     paddingBottom: screenWidth > 400 ? 40 : 30,
+    height: 350
   },
   formContainer: {
     alignItems: 'center',

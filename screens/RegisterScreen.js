@@ -10,7 +10,8 @@ import {
   Alert, 
   ActivityIndicator, 
   SafeAreaView, 
-  Dimensions 
+  Dimensions,
+  Modal
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
@@ -19,10 +20,47 @@ import { Ionicons } from '@expo/vector-icons';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 // Assets de imagem
-const userIcon = require('../assets/src/user.png');     
-const emailIcon = require('../assets/src/email.png');   
-const senhaIcon = require('../assets/src/senha.png');   
+const userIcon = require('../assets/src/user.png');     
+const emailIcon = require('../assets/src/email.png');   
+const senhaIcon = require('../assets/src/senha.png');   
 const logo = require('../assets/src/perfil.png');
+
+// Componente Modal de Sucesso - Reutilizável para ambas as telas
+const SuccessModal = ({ isVisible, onClose }) => {
+    // Carrega fontes para o modal
+    const [fontsLoaded] = useFonts({
+        'Bree-Serif': require('../assets/fonts/BreeSerif-Regular.ttf'),
+    });
+
+    if (!fontsLoaded) return null; // Não renderiza se fonte não estiver pronta
+
+    return (
+        <Modal
+            animationType="fade"
+            transparent={true}
+            visible={isVisible}
+            onRequestClose={onClose}
+        >
+            <View style={modalStyles.centeredView}>
+                <LinearGradient 
+                    colors={['#b9d2ff', '#84a9da']} 
+                    style={modalStyles.modalView}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                >
+                    <Ionicons name="checkmark-circle" size={50} color="#fff" />
+                    <Text style={modalStyles.modalTitle}>Sucesso!</Text>
+                    <Text style={modalStyles.modalText}>
+                        Cadastro realizado com sucesso!
+                    </Text>
+                    <Text style={modalStyles.modalTextSmall}>
+                        Redirecionando para o login...
+                    </Text>
+                </LinearGradient>
+            </View>
+        </Modal>
+    );
+};
 
 const RegisterScreen = ({ navigation }) => {
   const [fontsLoaded] = useFonts({
@@ -35,6 +73,7 @@ const RegisterScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   
   // URL da API para o cadastro
   const API_URL = 'http://172.20.112.1:3000';
@@ -75,9 +114,12 @@ const RegisterScreen = ({ navigation }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Sucesso: Alerta e navegação para Login
-        Alert.alert('Sucesso', 'Cadastro realizado com sucesso! Faça login.');
-        navigation.navigate('Login');
+        // Sucesso: Exibe modal e navega para Login após 4 segundos
+        setShowSuccessModal(true);
+        setTimeout(() => {
+          setShowSuccessModal(false);
+          navigation.navigate('Login');
+        }, 4000);
       } else {
         // Falha: Tratamento de erro da API
         const serverMessage = data.message || 'Erro ao tentar registrar. Tente outro email.';
@@ -213,6 +255,12 @@ const RegisterScreen = ({ navigation }) => {
           </TouchableOpacity>
           <Text style={styles.activeTabTextBottom}>Cadastrar</Text>
         </View>
+
+        {/* MODAL DE SUCESSO */}
+        <SuccessModal 
+          isVisible={showSuccessModal} 
+          onClose={() => setShowSuccessModal(false)} 
+        />
 
       </LinearGradient>
     </SafeAreaView>
@@ -382,6 +430,53 @@ const styles = StyleSheet.create({
     fontSize: screenWidth > 400 ? (screenWidth > 500 ? 21 : 20) : 19,
     fontFamily: 'Bree-Serif',
   },
+});
+
+// Estilos do Modal - Mantendo identidade visual
+const modalStyles = StyleSheet.create({
+    // Contêiner principal que escurece o fundo
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)', // Fundo escuro
+    },
+    // Estilo do corpo do modal com gradiente
+    modalView: {
+        width: screenWidth * 0.8,
+        padding: 30,
+        borderRadius: 25,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 8,
+    },
+    // Título principal
+    modalTitle: {
+        fontFamily: 'Bree-Serif',
+        fontSize: 28,
+        color: '#fff',
+        fontWeight: 'bold',
+        marginTop: 10,
+        marginBottom: 5,
+    },
+    // Mensagem principal
+    modalText: {
+        fontFamily: 'Bree-Serif',
+        fontSize: 18,
+        color: '#fff',
+        textAlign: 'center',
+        marginBottom: 5,
+    },
+    // Mensagem secundária (menor)
+    modalTextSmall: {
+        fontFamily: 'Bree-Serif',
+        fontSize: 16,
+        color: 'rgba(255, 255, 255, 0.8)',
+        textAlign: 'center',
+    },
 });
 
 export default RegisterScreen;
